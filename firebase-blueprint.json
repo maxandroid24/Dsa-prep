@@ -1,0 +1,51 @@
+{
+  "entities": {
+    "UserProgress": {
+      "title": "UserProgress",
+      "description": "Durable schema tracking candidate DSA problem solving, topic progression, streaks, and interview revisions.",
+      "type": "object",
+      "properties": {
+        "uid": {
+          "type": "string",
+          "description": "The unique Firebase Authentication user ID."
+        },
+        "email": {
+          "type": "string",
+          "description": "User email address."
+        },
+        "completedTopics": {
+          "type": "array",
+          "description": "List of topic IDs that the user has completed."
+        },
+        "solvedProblems": {
+          "type": "array",
+          "description": "List of problem IDs that the user has solved."
+        },
+        "revisionStreak": {
+          "type": "integer",
+          "description": "User consecutive revision day count."
+        },
+        "lastActiveDate": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO string of the last activity timestamp."
+        },
+        "weakAreas": {
+          "type": "array",
+          "description": "List of topic IDs flagged as weak."
+        },
+        "revisionStatus": {
+          "type": "object",
+          "description": "Dictionary of revision status per topic ID."
+        }
+      },
+      "required": ["uid", "email", "completedTopics", "solvedProblems", "revisionStreak", "lastActiveDate"]
+    }
+  },
+  "firestore": {
+    "users/{userId}": {
+      "schema": "UserProgress",
+      "description": "Collection of user-scoped progress entities containing progress on topics and problem completion states."
+    }
+  }
+}

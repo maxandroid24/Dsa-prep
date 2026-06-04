@@ -4,6 +4,11 @@ import { dsaTopics } from './data/topics';
 import { dsaRoadmap } from './data/roadmap';
 import { getAllProblems } from './data/problems';
 
+// Firebase & Authentication Sync
+import { auth, googleProvider } from './lib/firebase';
+import { fetchUserProgress, saveUserProgress } from './lib/progressSync';
+import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
+
 // Views
 import Dashboard from './components/Dashboard';
 import Roadmap from './components/Roadmap';
@@ -34,7 +39,11 @@ import {
   X,
   Share2,
   Bell,
-  ChevronDown
+  ChevronDown,
+  LogOut,
+  LogIn,
+  Cloud,
+  CloudLightning
 } from 'lucide-react';
 
 export default function App() {
@@ -44,6 +53,11 @@ export default function App() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
   
+  // Authentication states
+  const [user, setUser] = useState<User | null>(null);
+  const [authLoading, setAuthLoading] = useState<boolean>(true);
+  const [showProfileMenu, setShowProfileMenu] = useState<boolean>(false);
+
   // Global Search
   const [globalSearch, setGlobalSearch] = useState<string>('');
   const [searchFocused, setSearchFocused] = useState<boolean>(false);
@@ -58,8 +72,9 @@ export default function App() {
     revisionStatus: { 'arrays': 'revised' }
   });
 
-  // Restore states
+  // Restore states and hook up onAuthStateChanged
   useEffect(() => {
+    // 1. Initial local restore
     const raw = localStorage.getItem('dsa_hub_progress_v2');
     if (raw) {
       try {
@@ -68,11 +83,41 @@ export default function App() {
         console.error('Progress restore error:', err);
       }
     }
+
+    // 2. Auth hook
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      setUser(currentUser);
+      setAuthLoading(false);
+      
+      if (currentUser) {
+        console.log('User signed in:', currentUser.email);
+        const cloudProgress = await fetchUserProgress(currentUser.uid);
+        if (cloudProgress) {
+          setProgress(cloudProgress);
+          localStorage.setItem('dsa_hub_progress_v2', JSON.stringify(cloudProgress));
+        } else {
+          // If no cloud progress exists yet, back up their current local training session
+          setProgress(prev => {
+            saveUserProgress(currentUser.uid, currentUser.email || '', prev).catch(err => {
+              console.error('Initial progress sync error:', err);
+            });
+            return prev;
+          });
+        }
+      }
+    });
+
+    return () => unsubscribe();
   }, []);
 
   const saveProgress = (next: UserProgress) => {
     setProgress(next);
     localStorage.setItem('dsa_hub_progress_v2', JSON.stringify(next));
+    if (user) {
+      saveUserProgress(user.uid, user.email || '', next).catch(err => {
+        console.error('Firebase save progress error:', err);
+      });
+    }
   };
 
   const handleToggleTopicComplete = (topicId: string) => {
@@ -174,6 +219,23 @@ export default function App() {
       setActiveTopicId(topicId);
     }
     setMobileMenuOpen(false);
+  };
+
+  const signInWithGoogle = async () => {
+    try {
+      await signInWithPopup(auth, googleProvider);
+    } catch (err) {
+      console.error('Google Sign-In Error:', err);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      await signOut(auth);
+      setShowProfileMenu(false);
+    } catch (err) {
+      console.error('Google Sign-Out Error:', err);
+    }
   };
 
   return (
@@ -304,17 +366,84 @@ export default function App() {
 
           <div className="h-6 w-px bg-slate-200 dark:bg-[#2C3148] hidden md:block" />
 
-          {/* Candidate Profile widget */}
-          <div className="items-center gap-2.5 select-none hidden md:flex font-sans">
-            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#4880FF] to-[#3570F0] text-white flex items-center justify-center font-bold text-sm shadow">
-              NK
+          {/* Candidate Profile / Google Auth Widget */}
+          {authLoading ? (
+            <div className="w-32 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse hidden md:block" />
+          ) : user ? (
+            <div className="relative font-sans hidden md:block">
+              <button 
+                onClick={() => setShowProfileMenu(!showProfileMenu)}
+                className="flex items-center gap-2.5 select-none cursor-pointer p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+              >
+                {user.photoURL ? (
+                  <img 
+                    src={user.photoURL} 
+                    alt={user.displayName || "User"} 
+                    className="w-8 h-8 rounded-full border border-[#4880FF]/30 object-cover"
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#4880FF] to-[#3570F0] text-white flex items-center justify-center font-bold text-xs shadow">
+                    {user.displayName ? user.displayName.slice(0, 2).toUpperCase() : 'US'}
+                  </div>
+                )}
+                <div className="text-left hidden lg:block">
+                  <h4 className="text-xs font-bold leading-tight text-slate-800 dark:text-slate-200 max-w-28 truncate">
+                    {user.displayName || 'Developer Account'}
+                  </h4>
+                  <span className="text-[9px] uppercase font-bold text-indigo-500 font-mono tracking-wider flex items-center gap-0.5 mt-0.5">
+                    <Cloud className="w-2.5 h-2.5 text-[#00B69B] animate-pulse" /> CLOUD SYNCED
+                  </span>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+              </button>
+
+              {/* Profile dropdown menu */}
+              {showProfileMenu && (
+                <>
+                  <div 
+                    className="fixed inset-0 z-40" 
+                    onClick={() => setShowProfileMenu(false)}
+                  />
+                  <div className={`absolute right-0 mt-2.5 w-60 rounded-2xl border p-4 shadow-2xl z-50 animate-fade-in animate-duration-100 ${
+                    isDarkMode ? 'bg-[#232738] border-[#2C3148] text-slate-100' : 'bg-white border-[#F1F2F7] text-slate-900'
+                  }`}>
+                    <div className="space-y-1.5 pb-3 border-b border-slate-150 dark:border-slate-800">
+                      <span className="text-[9px] font-sans font-extrabold text-[#4880FF] uppercase tracking-wider block">Candidate Account</span>
+                      <h5 className="text-xs font-extrabold text-slate-800 dark:text-slate-200">{user.displayName || 'Google Member'}</h5>
+                      <p className="text-[10px] text-slate-400 dark:text-slate-550 font-mono truncate">{user.email}</p>
+                    </div>
+
+                    <div className="py-3 border-b border-slate-150 dark:border-slate-800 space-y-2">
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                        <span>Local Progress Saved</span>
+                        <span className="text-[#00B69B] font-bold">Verified</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+                        <span>Database Node</span>
+                        <span className="font-mono text-[9px] bg-indigo-500/10 text-[#4880FF] px-2 py-0.5 rounded-full uppercase font-bold">FIRESTORE</span>
+                      </div>
+                    </div>
+
+                    <button 
+                      onClick={handleSignOut}
+                      className="w-full mt-3 px-3 py-2 bg-transparent hover:bg-red-500/10 text-red-650 hover:text-red-500 dark:hover:bg-red-500/10 dark:text-red-400 border border-transparent dark:border-red-500/15 rounded-xl text-xs font-bold transition flex items-center justify-center gap-1.5 cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" /> Sign Out Account
+                    </button>
+                  </div>
+                </>
+              )}
             </div>
-            <div className="text-left hidden lg:block">
-              <h4 className="text-xs font-bold leading-tight text-slate-800 dark:text-slate-200">Navneet Khar</h4>
-              <span className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 font-mono tracking-wider block">SDE CANDIDATE</span>
-            </div>
-            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
-          </div>
+          ) : (
+            <button 
+              onClick={signInWithGoogle}
+              className="px-4 py-2 bg-[#4880FF] hover:bg-[#3570F0] text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-md hover:shadow-[0_4px_12px_rgba(72,128,255,0.4)] select-none cursor-pointer shrink-0 hidden md:flex"
+            >
+              <LogIn className="w-3.5 h-3.5" />
+              <span>Connect Google</span>
+            </button>
+          )}
         </div>
       </header>
 
@@ -495,6 +624,43 @@ export default function App() {
                 >
                   Resources
                 </button>
+              </div>
+
+              {/* Mobile Auth button */}
+              <div className="pt-4 border-t border-slate-700/20">
+                {authLoading ? (
+                  <div className="h-9 w-full bg-slate-800 animate-pulse rounded-xl" />
+                ) : user ? (
+                  <div className="space-y-3">
+                    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-950/20 border border-[#4880FF]/20 rounded-xl">
+                      {user.photoURL && (
+                        <img 
+                          src={user.photoURL} 
+                          alt={user.displayName || "User"} 
+                          className="w-6 h-6 rounded-full"
+                          referrerPolicy="no-referrer"
+                        />
+                      )}
+                      <div className="overflow-hidden">
+                        <div className="text-[11px] font-bold text-slate-200 truncate">{user.displayName || 'Authorized Member'}</div>
+                        <div className="text-[9px] text-[#00B69B] uppercase font-mono tracking-wider font-extrabold flex items-center gap-0.5">Sync Active</div>
+                      </div>
+                    </div>
+                    <button 
+                      onClick={handleSignOut}
+                      className="w-full text-left px-3 py-2 rounded text-red-400 hover:bg-slate-900 border border-red-500/10 hover:border-red-500/25 text-xs font-bold transition flex items-center gap-2 cursor-pointer"
+                    >
+                      <LogOut className="w-3.5 h-3.5" /> Sign Out Google
+                    </button>
+                  </div>
+                ) : (
+                  <button 
+                    onClick={signInWithGoogle}
+                    className="w-full px-3 py-2 bg-[#4880FF] hover:bg-[#3570F0] text-white rounded text-xs font-bold transition flex items-center justify-center gap-2 shadow cursor-pointer"
+                  >
+                    <LogIn className="w-3.5 h-3.5" /> Sign In Google
+                  </button>
+                )}
               </div>
 
               <div className="space-y-1 pt-3 border-t border-slate-850">
