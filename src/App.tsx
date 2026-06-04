@@ -12,6 +12,7 @@ import PracticeProblems from './components/PracticeProblems';
 import PatternsView from './components/PatternsView';
 import RevisionView from './components/RevisionView';
 import ResourcesView from './components/ResourcesView';
+import Confetti from './components/Confetti';
 
 // Icons
 import {
@@ -39,6 +40,7 @@ export default function App() {
   const [activeTopicId, setActiveTopicId] = useState<string>('arrays');
   const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
+  const [showConfetti, setShowConfetti] = useState<boolean>(false);
   
   // Global Search
   const [globalSearch, setGlobalSearch] = useState<string>('');
@@ -78,6 +80,7 @@ export default function App() {
       next = progress.completedTopics.filter(id => id !== topicId);
     } else {
       next = [...progress.completedTopics, topicId];
+      setShowConfetti(true);
     }
     const updated = { ...progress, completedTopics: next };
     saveProgress(updated);
@@ -177,6 +180,7 @@ export default function App() {
         ? 'bg-slate-950 text-slate-100 dark-theme' 
         : 'bg-slate-50 text-slate-900'
     }`}>
+      <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
       {/* 1. Global Header Bar */}
       <header className={`sticky top-0 z-40 border-b flex h-16 items-center justify-between px-6 backdrop-blur ${
         isDarkMode 

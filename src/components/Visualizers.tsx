@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Play, RotateCcw, ArrowRight, Check, Search, Plus, Trash2, HelpCircle } from 'lucide-react';
 
 interface VisualizerProps {
@@ -199,126 +199,321 @@ function LinkedListVisualizer() {
 // 2. BINARY TREE VISUALIZER
 // ==========================================
 interface TreeNode {
-  id: number;
   val: number;
-  left?: number;
-  right?: number;
+  left: number | null;
+  right: number | null;
 }
 
 function BinaryTreeVisualizer() {
-  const [treeNodes, setTreeNodes] = useState<{ [id: number]: TreeNode }>({
-    1: { id: 1, val: 50, left: 2, right: 3 },
-    2: { id: 2, val: 30, left: 4, right: 5 },
-    3: { id: 3, val: 70 },
-    4: { id: 4, val: 15 },
-    5: { id: 5, val: 40 }
+  const [tree, setTree] = useState<{ [val: number]: TreeNode }>({
+    50: { val: 50, left: 30, right: 70 },
+    30: { val: 30, left: 15, right: 40 },
+    70: { val: 70, left: null, right: null },
+    15: { val: 15, left: null, right: null },
+    40: { val: 40, left: null, right: null },
   });
+  const [rootVal, setRootVal] = useState<number | null>(50);
+  const [insertVal, setInsertVal] = useState<string>('');
+  
+  // Simulation states
   const [activeNode, setActiveNode] = useState<number | null>(null);
-  const [statusText, setStatusText] = useState<string>('Tree is loaded. Play recursive traversal DFS or BFS.');
+  const [visitedNodes, setVisitedNodes] = useState<number[]>([]);
+  const [simSteps, setSimSteps] = useState<{ node: number; text: string }[]>([]);
+  const [simIndex, setSimIndex] = useState<number>(-1);
+  const [statusText, setStatusText] = useState<string>('BST is loaded. Perform insertions or run step-by-step traversals.');
 
-  const playTraversal = async (type: 'pre' | 'in' | 'post') => {
-    setStatusText(`Starting ${type === 'pre' ? 'Preorder (Root-L-R)' : type === 'in' ? 'Inorder (L-Root-R)' : 'Postorder (L-R-Root)'} DFS Traversal...`);
-    const path: number[] = [];
-
-    const traverse = (nodeId: number | undefined) => {
-      if (!nodeId || !treeNodes[nodeId]) return;
-      const current = treeNodes[nodeId];
-      
-      if (type === 'pre') path.push(nodeId);
-      traverse(current.left);
-      if (type === 'in') path.push(nodeId);
-      traverse(current.right);
-      if (type === 'post') path.push(nodeId);
+  // Render nodes coordinates dynamically based on tree structure using recursive depth-first
+  const getCoordinates = () => {
+    const coords: { [val: number]: { x: number; y: number } } = {};
+    const layout = (val: number | null, xStart: number, xEnd: number, y: number) => {
+      if (val === null || !tree[val]) return;
+      const x = (xStart + xEnd) / 2;
+      coords[val] = { x, y };
+      layout(tree[val].left, xStart, x, y + 55);
+      layout(tree[val].right, x, xEnd, y + 55);
     };
-
-    traverse(1); // root starts at 1
-
-    for (const step of path) {
-      setActiveNode(step);
-      setStatusText(`Visiting Node value: ${treeNodes[step].val}`);
-      await new Promise(resolve => setTimeout(resolve, 800));
+    if (rootVal !== null) {
+      layout(rootVal, 20, 580, 40);
     }
+    return coords;
+  };
+
+  const coords = getCoordinates();
+
+  // Handlers for traversals
+  const startTraversal = (type: 'pre' | 'in' | 'post' | 'bfs') => {
+    if (rootVal === null) {
+      setStatusText('Tree is empty!');
+      return;
+    }
+
+    const steps: { node: number; text: string }[] = [];
+    
+    if (type === 'bfs') {
+      const queue: number[] = [rootVal];
+      while (queue.length > 0) {
+        const curr = queue.shift()!;
+        steps.push({ node: curr, text: `BFS Queue pops node ${curr}. Visit this layer element.` });
+        const nodeObj = tree[curr];
+        if (nodeObj.left !== null) queue.push(nodeObj.left);
+        if (nodeObj.right !== null) queue.push(nodeObj.right);
+      }
+    } else {
+      const traverse = (val: number | null) => {
+        if (val === null || !tree[val]) return;
+        const nodeObj = tree[val];
+        if (type === 'pre') steps.push({ node: val, text: `Preorder visit (Root-L-R): Process node ${val} before children.` });
+        traverse(nodeObj.left);
+        if (type === 'in') steps.push({ node: val, text: `Inorder visit (L-Root-R): Process node ${val} in sorted order.` });
+        traverse(nodeObj.right);
+        if (type === 'post') steps.push({ node: val, text: `Postorder visit (L-R-Root): Process node ${val} after subtrees are navigated.` });
+      };
+      traverse(rootVal);
+    }
+
+    setSimSteps(steps);
+    setVisitedNodes([]);
+    setSimIndex(0);
+    setActiveNode(steps[0].node);
+    setStatusText(`Initialized step-by-step ${type.toUpperCase()} traversal. Click "Next Step" to advance.`);
+  };
+
+  const handleNextStep = () => {
+    if (simIndex < 0 || simIndex >= simSteps.length) return;
+    const currentStep = simSteps[simIndex];
+    setVisitedNodes(prev => [...prev, currentStep.node]);
+    setActiveNode(currentStep.node);
+    setStatusText(currentStep.text);
+
+    if (simIndex === simSteps.length - 1) {
+      setStatusText(`Traversal completed! Visited path: ${[...visitedNodes, currentStep.node].join(' -> ')}`);
+      setSimIndex(-1);
+    } else {
+      setSimIndex(prev => prev + 1);
+    }
+  };
+
+  // BST Insertion with a simulated visual comparison step
+  const handleInsert = async () => {
+    const val = parseInt(insertVal);
+    if (isNaN(val)) return;
+    if (tree[val]) {
+      setStatusText(`Value ${val} already exists in the BST!`);
+      return;
+    }
+    
+    setInsertVal('');
+    if (rootVal === null) {
+      setTree({ [val]: { val, left: null, right: null } });
+      setRootVal(val);
+      setStatusText(`Root of BST was null. Created root node with value ${val}.`);
+      return;
+    }
+
+    setStatusText(`Simulating comparison sequence to insert ${val} in BST...`);
+    let curr = rootVal;
+    const path: number[] = [];
+    
+    while (curr !== null) {
+      path.push(curr);
+      setActiveNode(curr);
+      await new Promise(resolve => setTimeout(resolve, 600));
+
+      if (val < curr) {
+        setStatusText(`Comparing: ${val} < ${curr}. Decentered to Left node boundary.`);
+        const next = tree[curr].left;
+        if (next === null) {
+          // Perform insertion
+          setTree(prev => ({
+            ...prev,
+            [curr]: { ...prev[curr], left: val },
+            [val]: { val, left: null, right: null }
+          }));
+          break;
+        }
+        curr = next;
+      } else {
+        setStatusText(`Comparing: ${val} >= ${curr}. Decentered to Right node boundary.`);
+        const next = tree[curr].right;
+        if (next === null) {
+          setTree(prev => ({
+            ...prev,
+            [curr]: { ...prev[curr], right: val },
+            [val]: { val, left: null, right: null }
+          }));
+          break;
+        }
+        curr = next;
+      }
+    }
+    
+    setActiveNode(val);
+    setStatusText(`Inserted node containing value ${val} underneath its parent element.`);
+    setTimeout(() => setActiveNode(null), 1200);
+  };
+
+  const handleReset = () => {
+    setTree({
+      50: { val: 50, left: 30, right: 70 },
+      30: { val: 30, left: 15, right: 40 },
+      70: { val: 70, left: null, right: null },
+      15: { val: 15, left: null, right: null },
+      40: { val: 40, left: null, right: null },
+    });
+    setRootVal(50);
     setActiveNode(null);
-    setStatusText(`Traversed complete path of visited nodes!`);
+    setVisitedNodes([]);
+    setSimSteps([]);
+    setSimIndex(-1);
+    setStatusText('Tree has been reset to base BST skeleton.');
   };
 
   return (
     <div className="space-y-4">
       {/* Simulation Frame */}
-      <div className="w-full h-64 bg-slate-950 rounded-lg border border-slate-800 relative overflow-hidden flex items-center justify-center">
-        <svg className="w-full h-full">
-          {/* Edge links */}
-          {/* Root(1) coordinates: (x: 50%, y: 15%) */}
-          {/* Node 2 coordinates: (x: 25%, y: 45%) */}
-          {/* Node 3 coordinates: (x: 75%, y: 45%) */}
-          {/* Node 4 coordinates: (x: 12.5%, y: 75%) */}
-          {/* Node 5 coordinates: (x: 37.5%, y: 75%) */}
-          <line x1="50%" y1="20%" x2="25%" y2="50%" stroke="#475569" strokeWidth="2" />
-          <line x1="50%" y1="20%" x2="75%" y2="50%" stroke="#475569" strokeWidth="2" />
-          <line x1="25%" y1="50%" x2="12.5%" y2="80%" stroke="#475569" strokeWidth="2" />
-          <line x1="25%" y1="50%" x2="37.5%" y2="80%" stroke="#475569" strokeWidth="2" />
+      <div className="w-full h-72 bg-slate-950 rounded-lg border border-slate-800 relative overflow-hidden flex items-center justify-center">
+        {rootVal === null ? (
+          <div className="text-slate-500 font-mono text-sm">BST is empty. Please insert elements below.</div>
+        ) : (
+          <svg className="w-full h-full" id="tree-svg">
+            {/* Draw edge linkage lines first */}
+            {Object.keys(tree).map(nodeKey => {
+              const val = parseInt(nodeKey);
+              const node = tree[val];
+              const fromCoords = coords[val];
+              if (!fromCoords) return null;
 
-          {/* Node 1 */}
-          <circle 
-            cx="50%" cy="20%" r="18" 
-            className={`transition-all duration-300 ${activeNode === 1 ? 'fill-emerald-800 stroke-emerald-300 stroke-2' : 'fill-slate-900 stroke-slate-700'}`} 
-          />
-          <text x="50%" y="22%" textAnchor="middle" fill="#f8fafc" className="font-mono text-xs font-bold font-semibold">50</text>
+              return (
+                <React.Fragment key={`edges-${val}`}>
+                  {node.left !== null && coords[node.left] && (
+                    <line
+                      x1={fromCoords.x}
+                      y1={fromCoords.y}
+                      x2={coords[node.left].x}
+                      y2={coords[node.left].y}
+                      stroke="#475569"
+                      strokeWidth="2"
+                    />
+                  )}
+                  {node.right !== null && coords[node.right] && (
+                    <line
+                      x1={fromCoords.x}
+                      y1={fromCoords.y}
+                      x2={coords[node.right].x}
+                      y2={coords[node.right].y}
+                      stroke="#475569"
+                      strokeWidth="2"
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
 
-          {/* Node 2 */}
-          <circle 
-            cx="25%" cy="50%" r="18" 
-            className={`transition-all duration-300 ${activeNode === 2 ? 'fill-emerald-800 stroke-emerald-300 stroke-2' : 'fill-slate-900 stroke-slate-700'}`} 
-          />
-          <text x="25%" y="52%" textAnchor="middle" fill="#f8fafc" className="font-mono text-xs font-bold">30</text>
+            {/* Draw node circles with labels */}
+            {Object.keys(coords).map(nodeKey => {
+              const val = parseInt(nodeKey);
+              const nodeCoords = coords[val];
+              const isActive = activeNode === val;
+              const isVisited = visitedNodes.includes(val);
 
-          {/* Node 3 */}
-          <circle 
-            cx="75%" cy="50%" r="18" 
-            className={`transition-all duration-300 ${activeNode === 3 ? 'fill-emerald-800 stroke-emerald-300 stroke-2' : 'fill-slate-900 stroke-slate-700'}`} 
-          />
-          <text x="75%" y="52%" textAnchor="middle" fill="#f8fafc" className="font-mono text-xs font-bold">70</text>
-
-          {/* Node 4 */}
-          <circle 
-            cx="12.5%" cy="80%" r="18" 
-            className={`transition-all duration-300 ${activeNode === 4 ? 'fill-emerald-800 stroke-emerald-300 stroke-2' : 'fill-slate-900 stroke-slate-700'}`} 
-          />
-          <text x="12.5%" y="82%" textAnchor="middle" fill="#f8fafc" className="font-mono text-xs font-bold">15</text>
-
-          {/* Node 5 */}
-          <circle 
-            cx="37.5%" cy="80%" r="18" 
-            className={`transition-all duration-300 ${activeNode === 5 ? 'fill-emerald-800 stroke-emerald-300 stroke-2' : 'fill-slate-900 stroke-slate-700'}`} 
-          />
-          <text x="37.5%" y="82%" textAnchor="middle" fill="#f8fafc" className="font-mono text-xs font-bold">40</text>
-        </svg>
+              return (
+                <g key={`node-${val}`} className="cursor-pointer">
+                  <circle
+                    cx={nodeCoords.x}
+                    cy={nodeCoords.y}
+                    r="16"
+                    className={`transition-all duration-300 ${
+                      isActive
+                        ? 'fill-indigo-800 stroke-indigo-300 stroke-2 ring-2 scale-110'
+                        : isVisited
+                        ? 'fill-emerald-950 stroke-emerald-500 stroke-2'
+                        : 'fill-slate-900 stroke-slate-700'
+                    }`}
+                  />
+                  <text
+                    x={nodeCoords.x}
+                    y={nodeCoords.y + 4}
+                    textAnchor="middle"
+                    fill="#f8fafc"
+                    className="font-mono text-[10px] font-bold"
+                  >
+                    {val}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        )}
       </div>
 
-      {/* Controls */}
+      {/* Traversal triggers */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+        <button
+          onClick={() => startTraversal('pre')}
+          className="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 px-3 py-1.5 rounded text-xs font-semibold"
+        >
+          Preorder DFS
+        </button>
+        <button
+          onClick={() => startTraversal('in')}
+          className="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 px-3 py-1.5 rounded text-xs font-semibold"
+        >
+          Inorder DFS
+        </button>
+        <button
+          onClick={() => startTraversal('post')}
+          className="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 px-3 py-1.5 rounded text-xs font-semibold"
+        >
+          Postorder DFS
+        </button>
+        <button
+          onClick={() => startTraversal('bfs')}
+          className="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 px-3 py-1.5 rounded text-xs font-semibold"
+        >
+          Level-Order BFS
+        </button>
+      </div>
+
+      {/* Action panel & Insertion input */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <button 
-          onClick={() => playTraversal('pre')} 
-          className="bg-indigo-650 hover:bg-indigo-600 text-white px-4 py-2 rounded text-xs font-bold flex items-center justify-center gap-1"
+        <div className="flex gap-2">
+          <input
+            type="number"
+            placeholder="Val"
+            value={insertVal}
+            onChange={e => setInsertVal(e.target.value)}
+            className="w-full bg-slate-950 border border-slate-805 rounded px-2 text-slate-100 text-xs font-mono focus:border-indigo-500 focus:outline-none"
+          />
+          <button
+            onClick={handleInsert}
+            className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded text-xs font-semibold shrink-0"
+          >
+            InsertBST
+          </button>
+        </div>
+
+        <button
+          onClick={handleNextStep}
+          disabled={simIndex < 0}
+          className={`px-4 py-1.5 rounded text-xs font-bold transition flex items-center justify-center gap-1.5 ${
+            simIndex >= 0
+              ? 'bg-emerald-600 hover:bg-emerald-500 text-white animate-pulse'
+              : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-850'
+          }`}
         >
-          <Play className="w-3.5 h-3.5" /> Preorder DFS
+          <Play className="w-3.5 h-3.5" /> Next Step
         </button>
-        <button 
-          onClick={() => playTraversal('in')} 
-          className="bg-sky-650 hover:bg-sky-600 text-white px-4 py-2 rounded text-xs font-bold flex items-center justify-center gap-1"
+
+        <button
+          onClick={handleReset}
+          className="border border-slate-750 hover:bg-slate-800 text-slate-300 px-4 py-1.5 rounded text-xs font-semibold"
         >
-          <Play className="w-3.5 h-3.5" /> Inorder DFS (Sorted)
-        </button>
-        <button 
-          onClick={() => playTraversal('post')} 
-          className="bg-emerald-650 hover:bg-emerald-600 text-white px-4 py-2 rounded text-xs font-bold flex items-center justify-center gap-1"
-        >
-          <Play className="w-3.5 h-3.5" /> Postorder DFS
+          Reset BST
         </button>
       </div>
 
       <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
-        <strong className="text-sky-300 border-none">Logger:</strong> {statusText}
+        <strong className="text-indigo-400">Logger:</strong> {statusText}
       </p>
     </div>
   );
@@ -331,12 +526,26 @@ function HeapVisualizer() {
   const [heap, setHeap] = useState<number[]>([15, 20, 30, 45, 55, 60]);
   const [inputValue, setInputValue] = useState<string>('');
   const [swappingIndices, setSwappingIndices] = useState<number[]>([]);
-  const [statusText, setStatusText] = useState<string>('Min Heap loaded. Swap or pop roots.');
+  const [statusText, setStatusText] = useState<string>('Min Heap loaded. Insert node or extract min root step-by-step.');
+
+  const getHeapNodeCoords = (i: number, total: number) => {
+    const depth = Math.floor(Math.log2(i + 1));
+    const levelSize = Math.pow(2, depth);
+    const indexInLevel = i - (levelSize - 1);
+    const y = 35 + depth * 50;
+    const xFraction = (indexInLevel + 0.5) / levelSize;
+    return { x: `${xFraction * 100}%`, y };
+  };
 
   const handlePush = async () => {
     const val = parseInt(inputValue);
     if (isNaN(val)) return;
-    setStatusText(`Inserting value ${val} at the end of the packed array.`);
+    if (heap.length >= 15) {
+      setStatusText('Maximum capacity of 15 elements reached to maintain tree legibility.');
+      return;
+    }
+    
+    setStatusText(`Inserting value ${val} at the end of the heap backing array.`);
     const newHeap = [...heap, val];
     setHeap(newHeap);
     setInputValue('');
@@ -346,7 +555,7 @@ function HeapVisualizer() {
     while (child > 0) {
       const parent = Math.floor((child - 1) / 2);
       if (newHeap[child] < newHeap[parent]) {
-        setStatusText(`Invariance violated! swapped position child(${newHeap[child]}) with parent(${newHeap[parent]})`);
+        setStatusText(`Invariance violated: child(${newHeap[child]}) < parent(${newHeap[parent]}). Swapping...`);
         setSwappingIndices([child, parent]);
         await new Promise(resolve => setTimeout(resolve, 800));
         
@@ -366,7 +575,7 @@ function HeapVisualizer() {
 
   const handleExtractMin = async () => {
     if (heap.length === 0) return;
-    setStatusText(`Extracting minimum value ${heap[0]} from root. Swap root with the last leaf element.`);
+    setStatusText(`Extracting minimum value ${heap[0]} from tree root. Swapping root with last leaf.`);
     setSwappingIndices([0, heap.length - 1]);
     await new Promise(resolve => setTimeout(resolve, 800));
 
@@ -376,7 +585,7 @@ function HeapVisualizer() {
     if (newHeap.length > 0 && lastValue !== undefined) {
       newHeap[0] = lastValue;
       setHeap([...newHeap]);
-      setStatusText('Bubble down checking from the root...');
+      setStatusText('Heapify Down check starting from root node...');
       
       let index = 0;
       while (true) {
@@ -388,7 +597,7 @@ function HeapVisualizer() {
         if (right < newHeap.length && newHeap[right] < newHeap[smallest]) smallest = right;
 
         if (smallest !== index) {
-          setStatusText(`Heapify Down: Swapped index(${newHeap[index]}) with smallest child(${newHeap[smallest]})`);
+          setStatusText(`Heapify Down: Swapping parent(${newHeap[index]}) with smallest child(${newHeap[smallest]})`);
           setSwappingIndices([index, smallest]);
           await new Promise(resolve => setTimeout(resolve, 850));
 
@@ -405,26 +614,106 @@ function HeapVisualizer() {
       setHeap([]);
     }
     setSwappingIndices([]);
-    setStatusText(`Minimum element ${poppedValue} extracted successfully from root.`);
+    setStatusText(`ExtractMin complete. Popped minimum value ${poppedValue} successfully.`);
   };
 
   return (
     <div className="space-y-4">
+      {/* Dynamic Binary Heap Tree Visualization */}
+      <div className="w-full h-56 bg-slate-950 rounded-lg border border-slate-800 relative overflow-hidden flex items-center justify-center">
+        {heap.length === 0 ? (
+          <div className="text-slate-500 font-mono text-sm">Heap is empty. Insert elements below.</div>
+        ) : (
+          <svg className="w-full h-full">
+            {/* Draw edge linkage lines first */}
+            {heap.map((val, idx) => {
+              const left = 2 * idx + 1;
+              const right = 2 * idx + 2;
+              const coords = getHeapNodeCoords(idx, heap.length);
+              
+              return (
+                <React.Fragment key={`edges-${idx}`}>
+                  {left < heap.length && (
+                    <line
+                      x1={coords.x}
+                      y1={coords.y}
+                      x2={getHeapNodeCoords(left, heap.length).x}
+                      y2={getHeapNodeCoords(left, heap.length).y}
+                      stroke="#475569"
+                      strokeWidth="2"
+                    />
+                  )}
+                  {right < heap.length && (
+                    <line
+                      x1={coords.x}
+                      y1={coords.y}
+                      x2={getHeapNodeCoords(right, heap.length).x}
+                      y2={getHeapNodeCoords(right, heap.length).y}
+                      stroke="#475569"
+                      strokeWidth="2"
+                    />
+                  )}
+                </React.Fragment>
+              );
+            })}
+
+            {/* Draw nodes as circles */}
+            {heap.map((val, idx) => {
+              const coords = getHeapNodeCoords(idx, heap.length);
+              const isSwapping = swappingIndices.includes(idx);
+              
+              return (
+                <g key={`node-${idx}`}>
+                  <circle
+                    cx={coords.x}
+                    cy={coords.y}
+                    r="15"
+                    className={`transition-all duration-300 ${
+                      isSwapping
+                        ? 'fill-amber-800 stroke-amber-300 stroke-2 ring-2 scale-110 animate-pulse'
+                        : 'fill-slate-900 stroke-slate-700'
+                    }`}
+                  />
+                  <text
+                    x={coords.x}
+                    y={coords.y + 4}
+                    textAnchor="middle"
+                    fill="#f8fafc"
+                    className="font-mono text-[9px] font-bold"
+                  >
+                    {val}
+                  </text>
+                  <text
+                    x={coords.x}
+                    y={coords.y - 17}
+                    textAnchor="middle"
+                    fill="#64748b"
+                    className="font-mono text-[7px]"
+                  >
+                    idx:{idx}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        )}
+      </div>
+
       {/* Vector Visualization Panel */}
-      <div className="w-full h-36 bg-slate-950 rounded-lg flex flex-col items-center justify-center p-3 border border-slate-800">
-        <span className="text-xs text-slate-500 font-mono mb-2">Backing Array Representation</span>
+      <div className="w-full bg-slate-950 rounded-lg flex flex-col items-center justify-center p-3 border border-slate-800">
+        <span className="text-[10px] text-slate-500 font-mono mb-2 uppercase tracking-wider">Backing Array Representation</span>
         <div className="flex gap-1.5 overflow-x-auto max-w-full">
           {heap.map((v, i) => (
             <div 
               key={i} 
-              className={`w-12 h-12 rounded border flex flex-col items-center justify-center font-mono ${
+              className={`w-11 h-11 rounded border flex flex-col items-center justify-center font-mono ${
                 swappingIndices.includes(i) 
                   ? 'bg-amber-950 text-amber-300 border-amber-500 scale-105' 
                   : 'bg-slate-900 text-slate-100 border-slate-700'
               }`}
             >
-              <span className="text-sm font-bold">{v}</span>
-              <span className="text-[9px] text-slate-600">[{i}]</span>
+              <span className="text-xs font-bold">{v}</span>
+              <span className="text-[8px] text-slate-505">[{i}]</span>
             </div>
           ))}
         </div>
@@ -442,7 +731,7 @@ function HeapVisualizer() {
           />
           <button 
             onClick={handlePush}
-            className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-1 rounded text-xs font-bold"
+            className="bg-amber-600 hover:bg-amber-500 text-white px-4 py-1 rounded text-xs font-bold shrink-0"
           >
             Insert
           </button>
@@ -456,7 +745,7 @@ function HeapVisualizer() {
         </button>
 
         <button 
-          onClick={() => { setHeap([10, 20, 15, 30, 45, 40]); setStatusText('Reset completed.'); setSwappingIndices([]); }}
+          onClick={() => { setHeap([15, 20, 30, 45, 55, 60]); setStatusText('Reset completed.'); setSwappingIndices([]); }}
           className="border border-slate-750 hover:bg-slate-800 text-slate-300 px-4 py-1.5 rounded text-xs font-bold"
         >
           Reset Heap Array
@@ -474,89 +763,357 @@ function HeapVisualizer() {
 // 4. GRAPH VISUALIZER
 // ==========================================
 function GraphVisualizer() {
+  const [nodes, setNodes] = useState<{ [id: string]: { x: string; y: string } }>({
+    'A': { x: '20%', y: '30%' },
+    'B': { x: '50%', y: '20%' },
+    'C': { x: '35%', y: '80%' },
+    'D': { x: '65%', y: '80%' },
+    'E': { x: '80%', y: '30%' }
+  });
+  const [edges, setEdges] = useState<{ u: string; v: string }[]>([
+    { u: 'A', v: 'B' },
+    { u: 'A', v: 'C' },
+    { u: 'B', v: 'D' },
+    { u: 'C', v: 'E' },
+    { u: 'D', v: 'E' }
+  ]);
+
   const [visitedNodes, setVisitedNodes] = useState<string[]>([]);
-  const [activeEdge, setActiveEdge] = useState<string | null>(null);
   const [activeSearch, setActiveSearch] = useState<string | null>(null);
-  const [statusText, setStatusText] = useState<string>('Graph vertices loaded. Trigger traversal.');
+  
+  // Step-by-step state
+  const [simSteps, setSimSteps] = useState<{ node: string; explanation: string; structure: string[] }[]>([]);
+  const [simIndex, setSimIndex] = useState<number>(-1);
+  const [simType, setSimType] = useState<'BFS' | 'DFS' | null>(null);
+  
+  const [newNodeName, setNewNodeName] = useState<string>('');
+  const [newEdgeU, setNewEdgeU] = useState<string>('');
+  const [newEdgeV, setNewEdgeV] = useState<string>('');
+  const [statusText, setStatusText] = useState<string>('Graph components loaded. Initialize BFS or DFS step-by-step traversal.');
 
-  // Render static coordinates of 5 connected circular nodes in graph network: A, B, C, D, E.
-  const handleTraverse = async (mode: 'BFS' | 'DFS') => {
-    setVisitedNodes([]);
-    setActiveEdge(null);
-    let order: string[] = [];
-    
-    if (mode === 'BFS') {
-      order = ['A', 'B', 'C', 'D', 'E'];
-      setStatusText('Running Breadth-First-Search (BFS) via Queue queue levels...');
+  // Initialize traversal steps list
+  const startTraversal = (type: 'BFS' | 'DFS') => {
+    const adj: { [key: string]: string[] } = {};
+    Object.keys(nodes).forEach(n => { adj[n] = []; });
+    edges.forEach(({ u, v }) => {
+      if (adj[u]) adj[u].push(v);
+      if (adj[v]) adj[v].push(u);
+    });
+
+    // Sort to keep visited branches consistent and deterministic
+    Object.keys(adj).forEach(n => { adj[n].sort(); });
+
+    const steps: { node: string; explanation: string; structure: string[] }[] = [];
+    const visited = new Set<string>();
+
+    if (type === 'BFS') {
+      const queue: string[] = ['A'];
+      visited.add('A');
+      while (queue.length > 0) {
+        // Capture structure snapshot
+        const snapshot = [...queue];
+        const curr = queue.shift()!;
+        steps.push({
+          node: curr,
+          explanation: `BFS Queue pops node ${curr}. Visiting unvisited node and expanding adjacent neighbors...`,
+          structure: snapshot
+        });
+        
+        adj[curr].forEach(neigh => {
+          if (!visited.has(neigh)) {
+            visited.add(neigh);
+            queue.push(neigh);
+          }
+        });
+      }
     } else {
-      order = ['A', 'C', 'E', 'B', 'D'];
-      setStatusText('Running Depth-First-Search (DFS) via Call Stack pathways...');
+      // DFS standard simulation steps via recursive path or call stack
+      const stack: string[] = ['A'];
+      while (stack.length > 0) {
+        const snapshot = [...stack];
+        const curr = stack.pop()!;
+        if (!visited.has(curr)) {
+          visited.add(curr);
+          steps.push({
+            node: curr,
+            explanation: `DFS Stack pops node ${curr}. Processing recursively deeper, and pushing unvisited neighbors into stack.`,
+            structure: snapshot
+          });
+          // Push neighbors in reverse order so they are processed in normal alphabetical sort
+          const revNeighs = [...adj[curr]].reverse();
+          revNeighs.forEach(neigh => {
+            if (!visited.has(neigh)) {
+              stack.push(neigh);
+            }
+          });
+        }
+      }
     }
 
-    for (let i = 0; i < order.length; i++) {
-      const node = order[i];
-      setActiveSearch(node);
-      await new Promise(resolve => setTimeout(resolve, 800));
-      setVisitedNodes(prev => [...prev, node]);
-      setStatusText(`Visited vertex node: ${node}`);
-    }
-    setActiveSearch(null);
-    setStatusText(`${mode} simulation completed successfully! Edge loops checked.`);
+    setSimSteps(steps);
+    setVisitedNodes([]);
+    setActiveSearch(steps[0].node);
+    setSimIndex(0);
+    setSimType(type);
+    setStatusText(`Initialized ${type} traversal from starting node 'A'. Click "Next Step" to advance simulated queue/stack.`);
   };
+
+  const handleNextStep = () => {
+    if (simIndex < 0 || simIndex >= simSteps.length) return;
+    const step = simSteps[simIndex];
+    setActiveSearch(step.node);
+    setVisitedNodes(prev => [...prev, step.node]);
+    setStatusText(step.explanation);
+
+    if (simIndex === simSteps.length - 1) {
+      setStatusText(`${simType} traversal completed! Visited order path: ${[...visitedNodes, step.node].join(' -> ')}`);
+      setSimIndex(-1);
+      setSimType(null);
+    } else {
+      setSimIndex(prev => prev + 1);
+    }
+  };
+
+  const handleAddNode = () => {
+    const name = newNodeName.trim().toUpperCase();
+    if (!name || nodes[name]) {
+      setStatusText('Node label must be unique and non-empty.');
+      return;
+    }
+    // Compute random coordinates around the center for dynamic positioning
+    const x = `${20 + Math.floor(Math.random() * 60)}%`;
+    const y = `${20 + Math.floor(Math.random() * 60)}%`;
+    setNodes(prev => ({ ...prev, [name]: { x, y } }));
+    setNewNodeName('');
+    setStatusText(`Added node ${name} cleanly into graph canvas.`);
+  };
+
+  const handleAddEdge = () => {
+    const u = newEdgeU.trim().toUpperCase();
+    const v = newEdgeV.trim().toUpperCase();
+    if (!nodes[u] || !nodes[v]) {
+      setStatusText('Both source and target nodes must exist in node inventory.');
+      return;
+    }
+    if (u === v) {
+      setStatusText('Self loops are disallowed in standard interview sandboxes.');
+      return;
+    }
+    // Verify duplicate edge
+    const exists = edges.some(e => (e.u === u && e.v === v) || (e.u === v && e.v === u));
+    if (exists) {
+      setStatusText('This edge connectivity already exists, undirected.');
+      return;
+    }
+
+    setEdges(prev => [...prev, { u, v }]);
+    setNewEdgeU('');
+    setNewEdgeV('');
+    setStatusText(`Connected node ${u} directly to node ${v}.`);
+  };
+
+  const handleReset = () => {
+    setNodes({
+      'A': { x: '20%', y: '30%' },
+      'B': { x: '50%', y: '20%' },
+      'C': { x: '35%', y: '80%' },
+      'D': { x: '65%', y: '80%' },
+      'E': { x: '80%', y: '30%' }
+    });
+    setEdges([
+      { u: 'A', v: 'B' },
+      { u: 'A', v: 'C' },
+      { u: 'B', v: 'D' },
+      { u: 'C', v: 'E' },
+      { u: 'D', v: 'E' }
+    ]);
+    setVisitedNodes([]);
+    setActiveSearch(null);
+    setSimSteps([]);
+    setSimIndex(-1);
+    setSimType(null);
+    setStatusText('Graph configurations reset to standard default state.');
+  };
+
+  const currentStepStructure = simIndex >= 0 && simIndex < simSteps.length ? simSteps[simIndex].structure : [];
 
   return (
     <div className="space-y-4">
       {/* Simulation Frame */}
       <div className="w-full h-64 bg-slate-950 rounded-lg border border-slate-800 relative overflow-hidden flex items-center justify-center">
         <svg className="w-full h-full">
-          {/* Edges */}
-          <line x1="20%" y1="30%" x2="50%" y2="20%" stroke={visitedNodes.includes('A') && visitedNodes.includes('B') ? '#10b981' : '#475569'} strokeWidth="3" />
-          <line x1="20%" y1="30%" x2="35%" y2="80%" stroke={visitedNodes.includes('A') && visitedNodes.includes('C') ? '#10b981' : '#475569'} strokeWidth="3" />
-          <line x1="50%" y1="20%" x2="65%" y2="80%" stroke={visitedNodes.includes('B') && visitedNodes.includes('D') ? '#10b981' : '#475569'} strokeWidth="3" />
-          <line x1="35%" y1="80%" x2="80%" y2="30%" stroke={visitedNodes.includes('C') && visitedNodes.includes('E') ? '#10b981' : '#475569'} strokeWidth="3" />
-          <line x1="65%" y1="80%" x2="80%" y2="30%" stroke={visitedNodes.includes('D') && visitedNodes.includes('E') ? '#10b981' : '#475569'} strokeWidth="3" />
+          {/* Draw connecting edges */}
+          {edges.map((e, idx) => {
+            const start = nodes[e.u];
+            const end = nodes[e.v];
+            if (!start || !end) return null;
 
-          {/* Vertex A (20%, 30%) */}
-          <circle cx="20%" cy="30%" r="20" className={`transition-all duration-300 ${activeSearch === 'A' ? 'fill-emerald-700 stroke-emerald-300 stroke-2' : visitedNodes.includes('A') ? 'fill-emerald-900 stroke-emerald-600' : 'fill-slate-900 stroke-slate-700'}`} />
-          <text x="20%" y="32%" textAnchor="middle" fill="#ffffff" className="font-mono text-xs font-bold">A</text>
+            const isVisitedEdge = visitedNodes.includes(e.u) && visitedNodes.includes(e.v);
+            return (
+              <line
+                key={`edge-${idx}`}
+                x1={start.x}
+                y1={start.y}
+                x2={end.x}
+                y2={end.y}
+                stroke={isVisitedEdge ? '#10b981' : '#475569'}
+                strokeWidth={isVisitedEdge ? '3' : '2'}
+                className="transition-all duration-300"
+              />
+            );
+          })}
 
-          {/* Vertex B (50%, 20%) */}
-          <circle cx="50%" cy="20%" r="20" className={`transition-all duration-300 ${activeSearch === 'B' ? 'fill-emerald-700 stroke-emerald-300 stroke-2' : visitedNodes.includes('B') ? 'fill-emerald-900 stroke-emerald-600' : 'fill-slate-900 stroke-slate-700'}`} />
-          <text x="50%" y="22%" textAnchor="middle" fill="#ffffff" className="font-mono text-xs font-bold">B</text>
+          {/* Draw nodes as structural SVG groups */}
+          {Object.keys(nodes).map(nodeId => {
+            const n = nodes[nodeId];
+            const isActive = activeSearch === nodeId;
+            const isVisited = visitedNodes.includes(nodeId);
 
-          {/* Vertex C (35%, 80%) */}
-          <circle cx="35%" cy="80%" r="20" className={`transition-all duration-300 ${activeSearch === 'C' ? 'fill-emerald-700 stroke-emerald-300 stroke-2' : visitedNodes.includes('C') ? 'fill-emerald-900 stroke-emerald-600' : 'fill-slate-900 stroke-slate-700'}`} />
-          <text x="35%" y="82%" textAnchor="middle" fill="#ffffff" className="font-mono text-xs font-bold">C</text>
-
-          {/* Vertex D (65%, 80%) */}
-          <circle cx="65%" cy="80%" r="20" className={`transition-all duration-300 ${activeSearch === 'D' ? 'fill-emerald-700 stroke-emerald-300 stroke-2' : visitedNodes.includes('D') ? 'fill-emerald-900 stroke-emerald-600' : 'fill-slate-900 stroke-slate-700'}`} />
-          <text x="65%" y="82%" textAnchor="middle" fill="#ffffff" className="font-mono text-xs font-bold">D</text>
-
-          {/* Vertex E (80%, 30%) */}
-          <circle cx="80%" cy="30%" r="20" className={`transition-all duration-300 ${activeSearch === 'E' ? 'fill-emerald-700 stroke-emerald-300 stroke-2' : visitedNodes.includes('E') ? 'fill-emerald-900 stroke-emerald-600' : 'fill-slate-900 stroke-slate-700'}`} />
-          <text x="80%" y="32%" textAnchor="middle" fill="#ffffff" className="font-mono text-xs font-bold">E</text>
+            return (
+              <g key={`vertex-${nodeId}`}>
+                <circle
+                  cx={n.x}
+                  cy={n.y}
+                  r="18"
+                  className={`transition-all duration-300 ${
+                    isActive
+                      ? 'fill-indigo-805 stroke-indigo-400 stroke-2 ring-2 scale-110'
+                      : isVisited
+                      ? 'fill-emerald-900 stroke-emerald-600'
+                      : 'fill-slate-900 stroke-slate-700'
+                  }`}
+                />
+                <text
+                  x={n.x}
+                  y={parseFloat(n.y) + 1.2 + '%'}
+                  textAnchor="middle"
+                  fill="#ffffff"
+                  className="font-mono text-xs font-bold pointer-events-none select-none"
+                >
+                  {nodeId}
+                </text>
+              </g>
+            );
+          })}
         </svg>
       </div>
 
-      {/* Buttons controls */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-        <button 
-          onClick={() => handleTraverse('BFS')}
-          className="bg-emerald-650 hover:bg-emerald-600 text-white px-4 py-2 rounded text-xs font-bold"
+      {/* Traversal triggers */}
+      <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+        <button
+          onClick={() => startTraversal('BFS')}
+          className="bg-slate-900 hover:bg-slate-800 border border-slate-705 text-slate-200 px-3 py-1.5 rounded text-xs font-semibold"
         >
-          Queue Breadth-First BFS
+          Init BFS Traversal
         </button>
-        <button 
-          onClick={() => handleTraverse('DFS')}
-          className="bg-indigo-650 hover:bg-indigo-600 text-white px-4 py-2 rounded text-xs font-bold"
+        <button
+          onClick={() => startTraversal('DFS')}
+          className="bg-slate-900 hover:bg-slate-800 border border-slate-705 text-slate-200 px-3 py-1.5 rounded text-xs font-semibold"
         >
-          Stack Depth-First DFS
+          Init DFS Traversal
         </button>
-        <button 
-          onClick={() => { setVisitedNodes([]); setActiveSearch(null); setStatusText('Reset completed.'); }}
-          className="border border-slate-750 hover:bg-slate-800 text-slate-300 px-4 py-2 rounded text-xs font-bold"
+        <button
+          onClick={handleNextStep}
+          disabled={simIndex < 0}
+          className={`px-3 py-1.5 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${
+            simIndex >= 0
+              ? 'bg-emerald-650 hover:bg-emerald-600 text-white animate-pulse'
+              : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-850'
+          }`}
         >
-          Reset Visited States
+          <Play className="w-3 h-3" /> Next Step
+        </button>
+      </div>
+
+      {/* Dynamic Queue/Stack visual frame */}
+      {simIndex >= 0 && (
+        <div className="bg-slate-950 p-2.5 rounded border border-slate-805 flex flex-col justify-start gap-1">
+          <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-indigo-400">
+            Active {simType === 'BFS' ? 'Queue (FIFO)' : 'Stack (LIFO)'} Structure Snapshot:
+          </span>
+          <div className="flex gap-1.5 overflow-x-auto">
+            {currentStepStructure.map((el, i) => (
+              <div
+                key={i}
+                className={`w-9 h-9 rounded border flex items-center justify-center font-mono font-bold text-xs ${
+                  (simType === 'BFS' && i === 0) || (simType === 'DFS' && i === currentStepStructure.length - 1)
+                    ? 'bg-indigo-950 border-indigo-500 text-indigo-300 ring-1 scale-105'
+                    : 'bg-slate-900 border-slate-750 text-slate-350'
+                }`}
+              >
+                {el}
+              </div>
+            ))}
+          </div>
+          <span className="text-[9px] text-slate-500 font-mono">
+            {simType === 'BFS' 
+              ? '← Node at left represents front of Queue popped next.' 
+              : '← Rightmost node represents top of Stack popped next.'}
+          </span>
+        </div>
+      )}
+
+      {/* Inputs to build graphs dynamically */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-900/40 p-3 rounded-lg border border-slate-800/60">
+        {/* Node controls */}
+        <div className="space-y-2">
+          <span className="text-[10px] uppercase font-mono text-slate-500 font-bold block">Add Custom Node label</span>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              maxLength={2}
+              placeholder="Label (e.g. F)"
+              value={newNodeName}
+              onChange={e => setNewNodeName(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-100 text-xs font-mono focus:border-indigo-500 focus:outline-none"
+            />
+            <button
+              onClick={handleAddNode}
+              className="bg-indigo-600 hover:bg-indigo-550 text-white text-xs font-semibold rounded px-4 py-1"
+            >
+              Add Node
+            </button>
+          </div>
+        </div>
+
+        {/* Edge controls */}
+        <div className="space-y-2">
+          <span className="text-[10px] uppercase font-mono text-slate-500 font-bold block">Add Directed Connections</span>
+          <div className="flex gap-2">
+            <input
+              type="text"
+              maxLength={2}
+              placeholder="U"
+              value={newEdgeU}
+              onChange={e => setNewEdgeU(e.target.value)}
+              className="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-100 text-xs font-mono text-center focus:border-indigo-500 focus:outline-none"
+            />
+            <span className="text-slate-500 text-sm font-bold flex items-center">to</span>
+            <input
+              type="text"
+              maxLength={2}
+              placeholder="V"
+              value={newEdgeV}
+              onChange={e => setNewEdgeV(e.target.value)}
+              className="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-100 text-xs font-mono text-center focus:border-indigo-500 focus:outline-none"
+            />
+            <button
+              onClick={handleAddEdge}
+              className="w-full bg-indigo-600 hover:bg-indigo-550 text-white text-xs font-semibold rounded px-4 py-1"
+            >
+              Add Connection
+            </button>
+          </div>
+        </div>
+      </div>
+
+      {/* Global Reset */}
+      <div className="flex justify-end">
+        <button
+          onClick={handleReset}
+          className="border border-slate-750 hover:bg-slate-850 text-slate-350 px-4 py-1.5 rounded text-xs font-semibold"
+        >
+          Reset Graph Default
         </button>
       </div>
 
@@ -570,11 +1127,93 @@ function GraphVisualizer() {
 // ==========================================
 // 5. TRIE VISUALIZER
 // ==========================================
+interface TrieNodeInstance {
+  id: string;
+  char: string;
+  isWord: boolean;
+  children: Record<string, TrieNodeInstance>;
+  x: number;
+  y: number;
+}
+
 function TrieVisualizer() {
   const [words, setWords] = useState<string[]>(['cat', 'car', 'cab']);
   const [newWord, setNewWord] = useState<string>('');
-  const [highWords, setHighWords] = useState<string | null>(null);
-  const [statusText, setStatusText] = useState<string>('Trie is preloaded containing "cat", "car", "cab".');
+  const [searchWord, setSearchWord] = useState<string>('');
+  const [activeHighlightNode, setActiveHighlightNode] = useState<string | null>(null);
+  const [statusText, setStatusText] = useState<string>('Dynamic Trie loaded. Insert words to grow node branches.');
+
+  // Dynamically assemble Trie tree root
+  const trieRoot = useMemo(() => {
+    const root: TrieNodeInstance = { id: 'root', char: 'ROOT', isWord: false, children: {}, x: 0, y: 0 };
+    let idCounter = 1;
+    words.forEach(w => {
+      let curr = root;
+      for (let i = 0; i < w.length; i++) {
+        const char = w[i];
+        if (!curr.children[char]) {
+          curr.children[char] = {
+            id: `node-${idCounter++}-${char}`,
+            char,
+            isWord: false,
+            children: {},
+            x: 0,
+            y: 0
+          };
+        }
+        curr = curr.children[char];
+        if (i === w.length - 1) curr.isWord = true;
+      }
+    });
+
+    // Layout the coordinates recursively
+    const layout = (node: TrieNodeInstance, xStart: number, xEnd: number, y: number, depth: number) => {
+      node.x = (xStart + xEnd) / 2;
+      node.y = y;
+      
+      const childKeys = Object.keys(node.children).sort();
+      if (childKeys.length === 0) return;
+      
+      const span = (xEnd - xStart) / childKeys.length;
+      childKeys.forEach((char, idx) => {
+        layout(
+          node.children[char],
+          xStart + idx * span,
+          xStart + (idx + 1) * span,
+          y + 45,
+          depth + 1
+        );
+      });
+    };
+
+    layout(root, 20, 580, 25, 0);
+    return root;
+  }, [words]);
+
+  // Collect flat list of nodes and links for rendering SVG elegantly
+  const collectNodesAndLinks = () => {
+    const nodesList: TrieNodeInstance[] = [];
+    const linksList: { fromX: number; fromY: number; toX: number; toY: number }[] = [];
+
+    const traverse = (node: TrieNodeInstance) => {
+      nodesList.push(node);
+      Object.keys(node.children).forEach(char => {
+        const child = node.children[char];
+        linksList.push({
+          fromX: node.x,
+          fromY: node.y,
+          toX: child.x,
+          toY: child.y
+        });
+        traverse(child);
+      });
+    };
+
+    traverse(trieRoot);
+    return { nodesList, linksList };
+  };
+
+  const { nodesList, linksList } = collectNodesAndLinks();
 
   const insertWord = () => {
     const w = newWord.trim().toLowerCase();
@@ -583,96 +1222,172 @@ function TrieVisualizer() {
       return;
     }
     if (words.includes(w)) {
-      setStatusText(`Word "${w}" already exists inside Trie structure.`);
+      setStatusText(`Word "${w}" already exists in the Trie!`);
       return;
     }
-    setWords([...words, w]);
+    if (w.length > 5) {
+      setStatusText('Keep word length <= 5 to maintain visualization layout bounds.');
+      return;
+    }
+    
+    setWords(prev => [...prev, w]);
     setNewWord('');
-    setStatusText(`Added word "${w}" into prefix node branches.`);
+    setStatusText(`Added word "${w}" into the Prefix Tree. Visually re-orienting subtree nodes.`);
+  };
+
+  const handleSearch = async () => {
+    const target = searchWord.trim().toLowerCase();
+    if (!target) return;
+    setStatusText(`Searching prefix path for string: "${target}"...`);
+    setSearchWord('');
+    
+    let curr = trieRoot;
+    let found = true;
+    
+    for (let i = 0; i < target.length; i++) {
+      const char = target[i];
+      if (curr.children[char]) {
+        curr = curr.children[char];
+        setActiveHighlightNode(curr.id);
+        setStatusText(`Letter '${char}' found at depth ${i + 1}.`);
+        await new Promise(resolve => setTimeout(resolve, 700));
+      } else {
+        found = false;
+        setStatusText(`Mismatch encountered! Prefix sequence "${target}" does not exist in Trie.`);
+        break;
+      }
+    }
+
+    if (found && curr.isWord) {
+      setStatusText(`Found full word path matching: "${target}"! (Marked green in the visualization)`);
+    } else if (found) {
+      setStatusText(`Matched prefix sequence "${target}", but this node isn't configured as a terminal word.`);
+    }
+
+    setTimeout(() => {
+      setActiveHighlightNode(null);
+    }, 2000);
   };
 
   return (
     <div className="space-y-4">
       {/* Simulation layout */}
-      <div className="w-full h-56 bg-slate-950 rounded-lg border border-slate-800 flex flex-col justify-center px-6 relative">
-        <span className="text-xs text-slate-500 font-mono absolute top-2 left-2">Custom Prefix Tree Tree map nodes</span>
-        
-        <div className="space-y-3 pt-4">
-          <div className="flex gap-1.5 flex-wrap">
-            <span className="text-xs text-slate-400 font-semibold font-mono self-center">Inserted Words:</span>
-            {words.map((w, i) => (
-              <span 
-                key={i} 
-                className="bg-slate-900 border border-slate-700 text-slate-200 px-2 py-0.5 rounded text-xs font-mono"
-              >
-                {w}
-              </span>
+      <div className="w-full h-64 bg-slate-950 rounded-lg border border-slate-800 relative overflow-hidden flex flex-col justify-between p-3">
+        <div className="flex gap-1.5 flex-wrap">
+          <span className="text-[10px] uppercase text-slate-500 font-bold font-mono self-center">Current Words:</span>
+          {words.map((w, i) => (
+            <span 
+              key={i} 
+              className="bg-slate-900 border border-slate-750 text-slate-300 px-1.5 py-0.5 rounded text-[10px] font-mono"
+            >
+              {w}
+            </span>
+          ))}
+        </div>
+
+        {/* Dynamic SVG Trie Tree map nodes */}
+        <div className="w-full h-48 relative">
+          <svg className="w-full h-full">
+            {/* Draw edge linkages */}
+            {linksList.map((l, i) => (
+              <line
+                key={`link-${i}`}
+                x1={l.fromX}
+                y1={l.fromY}
+                x2={l.toX}
+                y2={l.toY}
+                stroke="#334155"
+                strokeWidth="1.5"
+              />
             ))}
+
+            {/* Draw nodes */}
+            {nodesList.map(node => {
+              const isRoot = node.id === 'root';
+              const isSearchActive = activeHighlightNode === node.id;
+              
+              return (
+                <g key={node.id}>
+                  <circle
+                    cx={node.x}
+                    cy={node.y}
+                    r={isRoot ? '12' : '10'}
+                    className={`transition-all duration-300 ${
+                      isSearchActive
+                        ? 'fill-amber-800 stroke-amber-400 stroke-2 ring-1 scale-110'
+                        : node.isWord
+                        ? 'fill-emerald-950 stroke-emerald-500 stroke-2'
+                        : 'fill-slate-900 stroke-slate-700'
+                    }`}
+                  />
+                  <text
+                    x={node.x}
+                    y={node.y + (isRoot ? 3 : 3.5)}
+                    textAnchor="middle"
+                    fill={isSearchActive ? '#fbbf24' : node.isWord ? '#34d399' : '#e2e8f0'}
+                    className="font-mono text-[8px] font-bold select-none pointer-events-none"
+                  >
+                    {isRoot ? 'R' : node.char}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+        </div>
+      </div>
+
+      {/* Input panel & Interactive operations */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-900/40 p-3 rounded-lg border border-slate-800/60">
+        <div className="space-y-1.5">
+          <span className="text-[10px] uppercase font-mono text-slate-500 font-bold block">Insert Custom Word</span>
+          <div className="flex gap-2">
+            <input 
+              type="text" 
+              placeholder="e.g. dog" 
+              value={newWord} 
+              onChange={e => setNewWord(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-slate-100 text-xs font-mono focus:border-sky-500 focus:outline-none"
+            />
+            <button 
+              onClick={insertWord}
+              className="bg-sky-600 hover:bg-sky-500 text-white px-4 py-1 rounded text-xs font-semibold shrink-0"
+            >
+              Insert
+            </button>
           </div>
+        </div>
 
-          {/* SVG representation tree */}
-          <div className="w-full h-28 flex items-center justify-center">
-            <svg className="w-full h-full">
-              {/* Root */}
-              <circle cx="50%" cy="15%" r="10" fill="#475569" />
-              <text x="50%" y="18%" textAnchor="middle" fill="#fff" className="font-mono text-[8px]">ROOT</text>
-
-              {/* level 1: "c" */}
-              <line x1="50%" y1="15%" x2="50%" y2="45%" stroke="#334155" strokeWidth="1.5" />
-              <circle cx="50%" cy="45%" r="12" fill="#1e293b" stroke="#0ea5e9" strokeWidth="1.5" />
-              <text x="50%" y="48%" textAnchor="middle" fill="#38bdf8" className="font-mono text-xs font-bold">c</text>
-
-              {/* level 2: "a" */}
-              <line x1="50%" y1="45%" x2="50%" y2="75%" stroke="#334155" strokeWidth="1.5" />
-              <circle cx="50%" cy="75%" r="12" fill="#1e293b" stroke="#0ea5e9" strokeWidth="1.5" />
-              <text x="50%" y="78%" textAnchor="middle" fill="#38bdf8" className="font-mono text-xs font-bold">a</text>
-
-              {/* level 3: letters "t", "r", "b" */}
-              <line x1="50%" y1="75%" x2="35%" y2="105%" stroke="#334155" strokeWidth="1.5" />
-              <line x1="50%" y1="75%" x2="50%" y2="105%" stroke="#334155" strokeWidth="1.5" />
-              <line x1="50%" y1="75%" x2="65%" y2="105%" stroke="#334155" strokeWidth="1.5" />
-
-              {/* "t" */}
-              <circle cx="35%" cy="105%" r="10" fill="#14532d" stroke="#22c55e" strokeWidth="1" />
-              <text x="35%" y="108%" textAnchor="middle" fill="#4ade80" className="font-mono text-[10px]">t</text>
-
-              {/* "r" */}
-              <circle cx="50%" cy="105%" r="10" fill="#14532d" stroke="#22c55e" strokeWidth="1" />
-              <text x="50%" y="108%" textAnchor="middle" fill="#4ade80" className="font-mono text-[10px]">r</text>
-
-              {/* "b" */}
-              <circle cx="65%" cy="105%" r="10" fill="#14532d" stroke="#22c55e" strokeWidth="1" />
-              <text x="65%" y="108%" textAnchor="middle" fill="#4ade80" className="font-mono text-[10px]">b</text>
-            </svg>
+        <div className="space-y-1.5">
+          <span className="text-[10px] uppercase font-mono text-slate-500 font-bold block">Test Prefix Search (Animate)</span>
+          <div className="flex gap-2">
+            <input 
+              type="text" 
+              placeholder="e.g. cat" 
+              value={searchWord} 
+              onChange={e => setSearchWord(e.target.value)}
+              className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-slate-100 text-xs font-mono focus:border-amber-500 focus:outline-none"
+            />
+            <button 
+              onClick={handleSearch}
+              className="bg-amber-600 hover:bg-amber-550 text-white px-4 py-1 rounded text-xs font-semibold shrink-0"
+            >
+              Search
+            </button>
           </div>
         </div>
       </div>
 
-      {/* Input panel */}
-      <div className="flex gap-2">
-        <input 
-          type="text" 
-          placeholder="New lower Word (a-z)" 
-          value={newWord} 
-          onChange={e => setNewWord(e.target.value)}
-          className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-100 text-sm font-mono focus:border-sky-500 focus:outline-none"
-        />
-        <button 
-          onClick={insertWord}
-          className="bg-sky-655 hover:bg-sky-600 text-white px-5 py-1.5 rounded text-xs font-semibold shrink-0"
-        >
-          Insert Word
-        </button>
+      <div className="flex justify-end gap-2">
         <button 
           onClick={() => { setWords(['cat', 'car', 'cab']); setStatusText('Reset completed.'); }}
           className="border border-slate-755 hover:bg-slate-800 text-slate-350 px-4 py-1.5 rounded text-xs font-semibold shrink-0"
         >
-          Reset
+          Reset Setup
         </button>
       </div>
 
       <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
-        <strong className="text-sky-305 border-none">Logger:</strong> {statusText}
+        <strong className="text-sky-300">Logger:</strong> {statusText}
       </p>
     </div>
   );
@@ -686,101 +1401,257 @@ function UnionFindVisualizer() {
   const [ranks, setRanks] = useState<number[]>([0, 0, 0, 0, 0, 0]);
   const [node1, setNode1] = useState<string>('');
   const [node2, setNode2] = useState<string>('');
-  const [statusText, setStatusText] = useState<string>('6 elements created pointing parents to themselves.');
+  
+  // Animation/Simulation frames
+  const [activeHighlight, setActiveHighlight] = useState<number | null>(null);
+  const [findPath, setFindPath] = useState<number[]>([]);
+  const [statusText, setStatusText] = useState<string>('Disjoint Set forest initialized with 6 elements. Perform interactive Union or find.');
 
-  const handleUnion = () => {
+  const getNodeCoords = (id: number) => {
+    // Elegant hex coordinates centering the canvas
+    const angle = (id * 2 * Math.PI) / 6;
+    const x = 50 + Math.cos(angle) * 38;
+    const y = 105 + Math.sin(angle) * 65;
+    return { x: `${x}%`, y };
+  };
+
+  const handleUnion = async () => {
     const u = parseInt(node1);
     const v = parseInt(node2);
     if (isNaN(u) || isNaN(v) || u < 0 || u > 5 || v < 0 || v > 5) {
-      setStatusText('Insert index values between 0 and 5.');
+      setStatusText('Enter nodes indices values index between 0 and 5.');
       return;
     }
 
-    const find = (node: number): number => {
-      let root = node;
-      while (root !== parents[root]) {
-        root = parents[root];
-      }
-      return root;
-    };
+    setNode1('');
+    setNode2('');
 
-    const rootU = find(u);
-    const rootV = find(v);
+    if (u === v) {
+      setStatusText(`Nodes are identical elements! Union ${u} and ${v} has no operation effect.`);
+      return;
+    }
+
+    // Interactive step sequence: Find roots
+    setStatusText(`Simulating: Union(${u}, ${v}) starts by finding representative roots...`);
+    setActiveHighlight(u);
+    await new Promise(resolve => setTimeout(resolve, 800));
+    
+    // Find U root
+    let rootU = u;
+    const pathU = [rootU];
+    while (rootU !== parents[rootU]) {
+      rootU = parents[rootU];
+      pathU.push(rootU);
+    }
+    setFindPath(pathU);
+    setStatusText(`Found Root of element ${u} is representative ${rootU}.`);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+    
+    // Find V root
+    setActiveHighlight(v);
+    let rootV = v;
+    const pathV = [rootV];
+    while (rootV !== parents[rootV]) {
+      rootV = parents[rootV];
+      pathV.push(rootV);
+    }
+    setFindPath(pathV);
+    setStatusText(`Found Root of element ${v} is representative ${rootV}.`);
+    await new Promise(resolve => setTimeout(resolve, 1000));
 
     if (rootU === rootV) {
-      setStatusText(`Elements ${u} and ${v} are already connected in Disjoint Set! (Root: ${rootU})`);
+      setStatusText(`Representative root of both is ${rootU}. Node elements already belong to the same connected component.`);
+      setFindPath([]);
+      setActiveHighlight(null);
       return;
     }
 
+    // Merge representatives by Rank rule
     const nextParents = [...parents];
     const nextRanks = [...ranks];
 
     if (ranks[rootU] < ranks[rootV]) {
       nextParents[rootU] = rootV;
-      setStatusText(`Union: Pointed parent of root ${rootU} to root ${rootV} due to smaller rank.`);
+      setStatusText(`Union: Rank of ${rootU} < Rank of ${rootV}. Parent of root ${rootU} pointed to root ${rootV}.`);
     } else if (ranks[rootU] > ranks[rootV]) {
       nextParents[rootV] = rootU;
-      setStatusText(`Union: Pointed parent of root ${rootV} to root ${rootU} due to larger rank.`);
+      setStatusText(`Union: Rank of ${rootV} < Rank of ${rootU}. Parent of root ${rootV} pointed to root ${rootU}.`);
     } else {
       nextParents[rootV] = rootU;
       nextRanks[rootU]++;
-      setStatusText(`Union: Connected identical ranks! Pointed ${rootV} to ${rootU}. Rank of ${rootU} increased to ${nextRanks[rootU]}.`);
+      setStatusText(`Union: Identical ranks! Pointed parent root ${rootV} to root ${rootU}. Incremented Rank of root ${rootU} to ${nextRanks[rootU]}.`);
     }
 
     setParents(nextParents);
     setRanks(nextRanks);
-    setNode1('');
-    setNode2('');
+    setTimeout(() => {
+      setFindPath([]);
+      setActiveHighlight(null);
+    }, 1500);
+  };
+
+  // Pedogogical separate Find action with visual Path Compression animation!
+  const handleFind = async (elementId: number) => {
+    setStatusText(`Simulating: Find(${elementId}) path...`);
+    setActiveHighlight(elementId);
+    
+    let curr = elementId;
+    const path: number[] = [curr];
+    while (curr !== parents[curr]) {
+      curr = parents[curr];
+      path.push(curr);
+    }
+
+    // Highlight the path step-by-step
+    for (const step of path) {
+      setActiveHighlight(step);
+      setFindPath(prev => [...prev, step]);
+      await new Promise(resolve => setTimeout(resolve, 600));
+    }
+
+    setStatusText(`Root found: ${curr}. Starting dynamic path compression to optimize tree structure!`);
+    await new Promise(resolve => setTimeout(resolve, 1000));
+
+    // Dynamic Compression parent updates
+    const nextParents = [...parents];
+    path.forEach(node => {
+      nextParents[node] = curr;
+    });
+
+    setParents(nextParents);
+    setStatusText(`Compressed: parent references of traversed nodes [${path.join(', ')}] have been re-routed directly to root representative ${curr}.`);
+    
+    setTimeout(() => {
+      setActiveHighlight(null);
+      setFindPath([]);
+    }, 1500);
   };
 
   return (
     <div className="space-y-4">
-      {/* Simulation Grid */}
-      <div className="w-full h-36 bg-slate-950 rounded-lg p-4 border border-slate-800 flex items-center justify-around flex-wrap gap-2">
-        {parents.map((p, i) => (
-          <div 
-            key={i} 
-            className="w-16 h-16 bg-slate-900 border border-slate-700 rounded flex flex-col items-center justify-center font-mono text-center p-1"
-          >
-            <span className="text-xs text-slate-500">Node</span>
-            <span className="text-base font-bold text-slate-100">{i}</span>
-            <span className="text-[9px] text-emerald-400 mt-0.5">Parent: {p}</span>
-          </div>
-        ))}
+      {/* Simulation Frame */}
+      <div className="w-full h-60 bg-slate-950 rounded-lg border border-slate-800 relative overflow-hidden flex items-center justify-center">
+        <svg className="w-full h-full">
+          {/* SVG definitions containing arrowheads */}
+          <defs>
+            <marker
+              id="parent-arrow"
+              viewBox="0 0 10 10"
+              refX="17"
+              refY="5"
+              markerWidth="6"
+              markerHeight="6"
+              orient="auto-start-reverse"
+            >
+              <path d="M 0 1 L 10 5 L 0 9 z" fill="#10b981" />
+            </marker>
+          </defs>
+
+          {/* Draw connecting arrow vectors leading to parent nodes */}
+          {parents.map((p, idx) => {
+            if (p === idx) return null; // Root nodes don't point to others
+            const from = getNodeCoords(idx);
+            const to = getNodeCoords(p);
+
+            const isHighlighted = findPath.includes(idx);
+
+            return (
+              <line
+                key={`parent-link-${idx}`}
+                x1={from.x}
+                y1={from.y}
+                x2={to.x}
+                y2={to.y}
+                stroke={isHighlighted ? '#10b981' : '#475569'}
+                strokeWidth={isHighlighted ? '2.5' : '1.5'}
+                markerEnd="url(#parent-arrow)"
+                className="transition-all duration-350"
+              />
+            );
+          })}
+
+          {/* Draw representation node circle hexagon elements */}
+          {parents.map((p, idx) => {
+            const coords = getNodeCoords(idx);
+            const isActive = activeHighlight === idx;
+            const isPathNode = findPath.includes(idx);
+            const isRepresentativeRoot = parents[idx] === idx;
+
+            return (
+              <g key={`uf-node-${idx}`} className="cursor-pointer" onClick={() => handleFind(idx)}>
+                <circle
+                  cx={coords.x}
+                  cy={coords.y}
+                  r="15"
+                  className={`transition-all duration-300 ${
+                    isActive
+                      ? 'fill-indigo-800 stroke-indigo-400 stroke-2 ring-2 scale-110'
+                      : isPathNode
+                      ? 'fill-emerald-950 stroke-emerald-500 stroke-2'
+                      : isRepresentativeRoot
+                      ? 'fill-slate-900 stroke-sky-505 stroke-2'
+                      : 'fill-slate-900 stroke-slate-705'
+                  }`}
+                />
+                <text
+                  x={coords.x}
+                  y={coords.y + 4}
+                  textAnchor="middle"
+                  fill="#f8fafc"
+                  className="font-mono text-xs font-bold font-semibold select-none pointer-events-none"
+                >
+                  {idx}
+                </text>
+                <text
+                  x={coords.x}
+                  y={coords.y - 18}
+                  textAnchor="middle"
+                  fill="#64748b"
+                  className="font-mono text-[7px]"
+                >
+                  Rk:{ranks[idx]}
+                </text>
+              </g>
+            );
+          })}
+        </svg>
       </div>
 
-      {/* Input row */}
+      {/* Control interface */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-3">
         <input 
           type="number" 
-          placeholder="Element 1 (0-5)" 
+          placeholder="Element U (0-5)" 
           value={node1} 
           onChange={e => setNode1(e.target.value)}
-          className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-100 text-sm font-mono focus:border-emerald-500 focus:outline-none"
+          className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-100 text-sm font-mono focus:border-indigo-505 focus:outline-none"
         />
         <input 
           type="number" 
-          placeholder="Element 2 (0-5)" 
+          placeholder="Element V (0-5)" 
           value={node2} 
           onChange={e => setNode2(e.target.value)}
-          className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-100 text-sm font-mono focus:border-emerald-500 focus:outline-none"
+          className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-100 text-sm font-mono focus:border-indigo-505 focus:outline-none"
         />
         <button 
           onClick={handleUnion}
-          className="bg-emerald-600 hover:bg-emerald-500 text-white px-4 py-1.5 rounded text-xs font-semibold"
+          className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded text-xs font-bold"
         >
           Union sets
         </button>
         <button 
-          onClick={() => { setParents([0, 1, 2, 3, 4, 5]); setRanks([0, 0, 0, 0, 0, 0]); setStatusText('Reset completed.'); }}
-          className="border border-slate-750 hover:bg-slate-800 text-slate-300 px-4 py-1.5 rounded text-xs font-semibold"
+          onClick={() => { setParents([0, 1, 2, 3, 4, 5]); setRanks([0, 0, 0, 0, 0, 0]); setStatusText('Reset completed.'); setFindPath([]); setActiveHighlight(null); }}
+          className="border border-slate-755 hover:bg-slate-800 text-slate-350 px-4 py-1.5 rounded text-xs font-semibold shrink-0"
         >
           Reset Elements
         </button>
       </div>
 
       <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
-        <strong className="text-emerald-400 border-none">Logger:</strong> {statusText}
+        <span className="text-emerald-400 font-bold">Logger:</span> {statusText}
+        <span className="block mt-1.5 text-slate-500 text-[10px]">
+          * Pro Tip: Click any node circle directly to execute `Find(X)` and visualize path compression step-by-step!
+        </span>
       </p>
     </div>
   );
