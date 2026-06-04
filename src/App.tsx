@@ -32,7 +32,9 @@ import {
   Sun,
   Menu,
   X,
-  Share2
+  Share2,
+  Bell,
+  ChevronDown
 } from 'lucide-react';
 
 export default function App() {
@@ -177,22 +179,22 @@ export default function App() {
   return (
     <div className={`min-h-screen text-sans transition-colors duration-150 ${
       isDarkMode 
-        ? 'bg-slate-950 text-slate-100 dark-theme' 
-        : 'bg-slate-50 text-slate-900'
+        ? 'bg-[#1B1E2D] text-slate-100 dark-theme' 
+        : 'bg-[#F5F6FA] text-slate-900'
     }`}>
       <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
       {/* 1. Global Header Bar */}
-      <header className={`sticky top-0 z-40 border-b flex h-16 items-center justify-between px-6 backdrop-blur ${
+      <header className={`sticky top-0 z-40 border-b flex h-16 items-center justify-between px-6 transition-all duration-150 shadow-sm ${
         isDarkMode 
-          ? 'bg-slate-950/80 border-slate-900' 
-          : 'bg-white/80 border-slate-200'
+          ? 'bg-[#232738] border-[#2E344A]' 
+          : 'bg-white border-[#F1F2F7]'
       }`}>
         <div className="flex items-center gap-3">
           {/* Mobile Hamburg menu */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
             className={`p-1.5 rounded md:hidden border select-none ${
-              isDarkMode ? 'border-slate-800 text-slate-300' : 'border-slate-300 text-slate-700'
+              isDarkMode ? 'border-slate-800 text-slate-350' : 'border-slate-300 text-slate-700'
             }`}
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
@@ -201,14 +203,16 @@ export default function App() {
           {/* Desktop logo */}
           <div 
             onClick={() => handleNavigate('dashboard')}
-            className="flex items-center gap-2 cursor-pointer font-sans select-none"
+            className="flex items-center gap-2.5 cursor-pointer font-sans select-none"
           >
-            <div className="w-8 h-8 rounded-lg bg-indigo-650 flex items-center justify-center text-white font-black text-sm uppercase shadow">
-              H
+            <div className="w-9 h-9 rounded-xl bg-[#4880FF] flex items-center justify-center text-white font-black text-base uppercase shadow-[0_4px_10px_rgba(72,128,255,0.4)]">
+              DS
             </div>
             <div>
-              <h1 className="text-sm font-sans font-extrabold tracking-tight block">DSA Prep Hub</h1>
-              <span className="text-[9px] text-indigo-400 font-mono block -mt-1 font-bold">INTERVIEW READY PORTAL</span>
+              <h1 className="text-sm font-sans font-extrabold tracking-tight block">
+                <span className="text-[#4880FF]">Dash</span>Stack
+              </h1>
+              <span className="text-[9px] text-[#4880FF] font-mono block -mt-1 font-extrabold tracking-wider">DSA PREP HUB</span>
             </div>
           </div>
         </div>
@@ -216,23 +220,23 @@ export default function App() {
         {/* Global Search Bar (with matching results dropdown) */}
         <div className="relative w-72 md:w-96 hidden sm:block">
           <div className="relative">
-            <Search className="absolute left-3 top-2 w-4 h-4 text-slate-500" />
+            <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
             <input 
               type="text" 
-              placeholder="Instant Search tags, topics, problems..." 
+              placeholder="Search topics, problems, patterns..." 
               value={globalSearch}
               onChange={(e) => { setGlobalSearch(e.target.value); setSearchFocused(true); }}
               onFocus={() => setSearchFocused(true)}
-              className={`w-full text-xs font-mono pl-9 pr-3 py-1.5 rounded-lg border focus:outline-none transition-all ${
+              className={`w-full text-xs font-mono pl-10 pr-3 py-2 rounded-full border transition-all ${
                 isDarkMode 
-                  ? 'bg-slate-900 border-slate-800 text-slate-150 focus:border-indigo-650' 
-                  : 'bg-slate-100 border-slate-300 text-slate-800 focus:border-indigo-500'
+                  ? 'bg-[#1B1E2D] border-[#2C3148] text-slate-100 focus:border-[#4880FF]' 
+                  : 'bg-[#F5F6FA] border-[#F1F2F7] text-slate-850 focus:border-[#4880FF] focus:bg-white'
               }`}
             />
             {globalSearch && (
               <button 
                 onClick={() => setGlobalSearch('')}
-                className="absolute right-3 top-2 text-[10px] text-slate-500 hover:text-slate-200"
+                className="absolute right-3.5 top-2.5 text-[10px] text-slate-500 hover:text-[#4880FF]"
               >
                 Clear
               </button>
@@ -242,9 +246,9 @@ export default function App() {
           {/* Search results dropdown overlay */}
           {searchFocused && globalSearch && (
             <div className={`absolute left-0 right-0 mt-1 border rounded-lg overflow-hidden shadow-2xl font-mono text-xs z-50 ${
-              isDarkMode ? 'bg-slate-900 border-slate-800' : 'bg-white border-slate-200 text-slate-800'
+              isDarkMode ? 'bg-[#232738] border-[#2C3148]' : 'bg-white border-[#F1F2F7] text-slate-800'
             }`}>
-              <div className="px-3 py-2 text-[9px] text-slate-500 border-b border-slate-800/40 uppercase font-semibold">
+              <div className="px-3 py-2 text-[9px] text-slate-500 border-b border-slate-700/20 uppercase font-semibold">
                 Match Results ({searchResults.length})
               </div>
               {searchResults.length === 0 ? (
@@ -254,15 +258,15 @@ export default function App() {
                   <div 
                     key={id}
                     onClick={() => handleNavigateFromSearch(item)}
-                    className={`px-3 py-2 cursor-pointer transition border-b border-slate-850/30 flex justify-between items-center ${
-                      isDarkMode ? 'hover:bg-slate-850' : 'hover:bg-slate-100'
+                    className={`px-3 py-2 cursor-pointer transition border-b border-slate-700/10 flex justify-between items-center ${
+                      isDarkMode ? 'hover:bg-[#1B1E2D]' : 'hover:bg-slate-50'
                     }`}
                   >
                     <div>
-                      <span className="block font-bold text-slate-250">{item.title}</span>
+                      <span className="block font-bold text-slate-205">{item.title}</span>
                       <span className="text-[10px] text-slate-500">{item.subtitle}</span>
                     </div>
-                    <span className="text-[9px] bg-indigo-950 text-indigo-400 font-bold px-1.5 py-0.5 rounded uppercase">
+                    <span className="text-[9px] bg-primary/10 text-[#4880FF] font-bold px-1.5 py-0.5 rounded uppercase">
                       {item.type}
                     </span>
                   </div>
@@ -273,22 +277,44 @@ export default function App() {
         </div>
 
         {/* Right action metrics */}
-        <div className="flex items-center gap-3">
-          {/* Streak indicator */}
-          <div className="flex items-center gap-1 bg-amber-950/20 border border-amber-900/40 rounded px-2.5 py-1 text-amber-500 font-mono text-xs">
-            <span className="font-bold">🔥 Streak: {progress.revisionStreak}</span>
+        <div className="flex items-center gap-3.5">
+          {/* Flame Streak count */}
+          <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 rounded-full px-3 py-1 text-amber-500 font-sans text-xs font-semibold select-none">
+            <span>🔥 Streak: {progress.revisionStreak}d</span>
+          </div>
+
+          {/* Notification bell container */}
+          <div className="relative cursor-pointer p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-850 transition select-none">
+            <Bell className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+            <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#FF3E3E] rounded-full border-2 border-white dark:border-[#232738]" />
           </div>
 
           {/* Theme toggling controls */}
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-1.5 rounded-lg border cursor-pointer select-none ${
-              isDarkMode ? 'border-slate-800 text-amber-400 hover:bg-slate-900' : 'border-slate-300 text-slate-700 hover:bg-slate-100'
+            className={`p-2 rounded-full border cursor-pointer select-none transition ${
+              isDarkMode 
+                ? 'border-[#2C3148] text-[#FFA800] bg-[#1B1E2D] hover:bg-[#2C3148]' 
+                : 'border-[#F1F2F7] text-slate-650 bg-slate-50 hover:bg-slate-100'
             }`}
-            title="Toggle Theme Preset"
+            title="Toggle Theme Mode"
           >
             {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
           </button>
+
+          <div className="h-6 w-px bg-slate-200 dark:bg-[#2C3148] hidden md:block" />
+
+          {/* Candidate Profile widget */}
+          <div className="items-center gap-2.5 select-none hidden md:flex font-sans">
+            <div className="w-9 h-9 rounded-full bg-gradient-to-tr from-[#4880FF] to-[#3570F0] text-white flex items-center justify-center font-bold text-sm shadow">
+              NK
+            </div>
+            <div className="text-left hidden lg:block">
+              <h4 className="text-xs font-bold leading-tight text-slate-800 dark:text-slate-200">Navneet Khar</h4>
+              <span className="text-[9px] uppercase font-bold text-slate-400 dark:text-slate-500 font-mono tracking-wider block">SDE CANDIDATE</span>
+            </div>
+            <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+          </div>
         </div>
       </header>
 
@@ -296,21 +322,21 @@ export default function App() {
       <div className="flex">
         {/* VIEW A: DESKTOP SIDEBAR NAVIGATION */}
         <aside className={`w-64 border-r hidden md:block shrink-0 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto ${
-          isDarkMode ? 'bg-slate-950 border-slate-900' : 'bg-white border-slate-200'
+          isDarkMode ? 'bg-[#232738] border-[#2E344A]' : 'bg-white border-[#F1F2F7]'
         }`}>
           <div className="p-4 space-y-6">
             {/* Primary Nav group links */}
-            <div className="space-y-1 font-mono text-xs select-none">
-              <span className="text-[10px] text-slate-500 font-bold px-3 pb-2 uppercase tracking-wider block">
+            <div className="space-y-1.5 font-sans text-xs select-none">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold px-3 pb-2 uppercase tracking-wider block">
                 MAIN WORKSPACE
               </span>
 
               <button 
                 onClick={() => handleNavigate('dashboard')}
-                className={`w-full text-left px-3 py-2.5 rounded flex items-center gap-2.5 transition ${
+                className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
                   activeView === 'dashboard' 
-                    ? 'bg-indigo-950/65 border border-indigo-950 text-indigo-400 font-semibold' 
-                    : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                    ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
                 }`}
               >
                 <LayoutDashboard className="w-4 h-4" /> Dashboard Workspace
@@ -318,10 +344,10 @@ export default function App() {
 
               <button 
                 onClick={() => handleNavigate('roadmap')}
-                className={`w-full text-left px-3 py-2.5 rounded flex items-center gap-2.5 transition ${
+                className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
                   activeView === 'roadmap' 
-                    ? 'bg-indigo-950/65 border border-indigo-950 text-indigo-400 font-semibold' 
-                    : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                    ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
                 }`}
               >
                 <Map className="w-4 h-4" /> DSA Roadmap Map
@@ -329,10 +355,10 @@ export default function App() {
 
               <button 
                 onClick={() => handleNavigate('practice')}
-                className={`w-full text-left px-3 py-2.5 rounded flex items-center gap-2.5 transition ${
+                className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
                   activeView === 'practice' 
-                    ? 'bg-indigo-950/65 border border-indigo-950 text-indigo-400 font-semibold' 
-                    : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                    ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
                 }`}
               >
                 <Trophy className="w-4 h-4" /> Problem Database
@@ -340,10 +366,10 @@ export default function App() {
 
               <button 
                 onClick={() => handleNavigate('patterns')}
-                className={`w-full text-left px-3 py-2.5 rounded flex items-center gap-2.5 transition ${
+                className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
                   activeView === 'patterns' 
-                    ? 'bg-indigo-950/65 border border-indigo-950 text-indigo-400 font-semibold' 
-                    : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                    ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
                 }`}
               >
                 <Codepen className="w-4 h-4" /> Algorithmic Patterns
@@ -351,21 +377,21 @@ export default function App() {
 
               <button 
                 onClick={() => handleNavigate('prep-mode')}
-                className={`w-full text-left px-3 py-2.5 rounded flex items-center gap-2.5 transition ${
+                className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
                   activeView === 'prep-mode' 
-                    ? 'bg-indigo-950/65 border border-indigo-950 text-indigo-400 font-semibold' 
-                    : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                    ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
                 }`}
               >
-                <Activity className="w-4 h-4 text-emerald-400" /> SDE Prep Schedules
+                <Activity className="w-4 h-4" /> SDE Prep Schedules
               </button>
 
               <button 
                 onClick={() => handleNavigate('resources')}
-                className={`w-full text-left px-3 py-2.5 rounded flex items-center gap-2.5 transition ${
+                className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
                   activeView === 'resources' 
-                    ? 'bg-indigo-950/65 border border-indigo-950 text-indigo-400 font-semibold' 
-                    : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                    ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
+                    : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
                 }`}
               >
                 <BookMarked className="w-4 h-4" /> Prep Resources
@@ -373,25 +399,26 @@ export default function App() {
             </div>
 
             {/* Sub Nav Section: Lesson index list */}
-            <div className="space-y-1.5 font-mono text-xs">
-              <span className="text-[10px] text-slate-500 font-bold px-3 pb-1 uppercase tracking-wider block">
+            <div className="space-y-1.5 font-sans text-xs">
+              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold px-3 pb-1 uppercase tracking-wider block">
                 TOPICS PROGRESS
               </span>
               <div className="max-h-56 overflow-y-auto space-y-1 pr-1.5 scrollbar-thin scrollbar-thumb-slate-800">
                 {dsaTopics.map(t => {
                   const isDone = progress.completedTopics.includes(t.id);
+                  const isCurrent = activeView === 'topics' && activeTopicId === t.id;
                   return (
                     <div 
                       key={t.id}
                       onClick={() => handleNavigate('topics', t.id)}
-                      className={`px-3 py-2 rounded text-[11px] cursor-pointer transition flex justify-between items-center ${
-                        activeView === 'topics' && activeTopicId === t.id
-                          ? 'bg-slate-900 border border-slate-800 text-indigo-400 font-bold'
-                          : 'text-slate-450 hover:bg-slate-900 hover:text-slate-200'
+                      className={`px-3 py-2 rounded-lg text-[11px] cursor-pointer transition-all duration-150 flex justify-between items-center ${
+                        isCurrent
+                          ? 'bg-[#4880FF]/10 text-[#4880FF] font-bold border border-[#4880FF]/20'
+                          : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-800 dark:hover:text-slate-200'
                       }`}
                     >
                       <span className="truncate">{t.name}</span>
-                      {isDone && <CheckCircle2 className="w-3 h-3 text-emerald-500 shrink-0 ml-1.5" />}
+                      {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-[#00B69B] shrink-0 ml-1.5" />}
                     </div>
                   );
                 })}
@@ -400,12 +427,12 @@ export default function App() {
 
             {/* Bottom Tip cards */}
             <div className={`p-4 rounded-xl border font-sans text-[11px] ${
-              isDarkMode ? 'bg-slate-950 border-slate-850' : 'bg-slate-100 border-slate-200'
+              isDarkMode ? 'bg-[#1B1E2D] border-[#2C3148]' : 'bg-slate-50 border-[#F1F2F7]'
             }`}>
-              <h5 className="font-bold text-slate-250 mb-1 flex items-center gap-1 text-[11px]">
+              <h5 className="font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-1 text-[11px]">
                 <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Interview ProTip
               </h5>
-              <p className="text-slate-450 leading-relaxed text-[10px]">
+              <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-[10px]">
                 "Never write code immediately. Discuss complexities aloud, identify edge points, and state constraints first."
               </p>
             </div>
@@ -422,9 +449,9 @@ export default function App() {
             />
             {/* drawer container */}
             <div className={`relative w-64 h-full p-4 space-y-6 ${
-              isDarkMode ? 'bg-slate-950 text-slate-100' : 'bg-white text-slate-900'
+              isDarkMode ? 'bg-[#232738] text-slate-100' : 'bg-white text-slate-900'
             }`}>
-              <div className="flex justify-between items-center pb-2.5 border-b border-slate-850">
+              <div className="flex justify-between items-center pb-2.5 border-b border-slate-205/10">
                 <span className="text-xs font-mono font-bold text-slate-400">DSA NAV MENU</span>
                 <button onClick={() => setMobileMenuOpen(false)}>
                   <X className="w-5 h-5 text-slate-400" />

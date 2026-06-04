@@ -7,16 +7,16 @@ interface VisualizerProps {
 
 export default function Visualizers({ type }: VisualizerProps) {
   return (
-    <div className="w-full bg-slate-900 border border-slate-800 rounded-xl overflow-hidden shadow-2xl">
+    <div className="w-full bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl overflow-hidden shadow-sm">
       {/* Visualizer header */}
-      <div className="bg-slate-950 px-4 py-3 border-b border-slate-800 flex justify-between items-center">
+      <div className="bg-slate-50 dark:bg-[#1B1E2D] px-5 py-4 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center flex-wrap gap-2 select-none">
         <div className="flex items-center gap-2">
-          <div className="w-2.5 h-2.5 rounded-full bg-emerald-500 animate-pulse" />
-          <h4 className="text-sm font-mono text-slate-300 capitalize font-semibold tracking-wide">
+          <div className="w-2.5 h-2.5 rounded-full bg-[#00B69B] animate-pulse" />
+          <h4 className="text-sm font-sans text-slate-800 dark:text-slate-200 capitalize font-extrabold tracking-wide">
             Interactive Node Sandbox: {type.replace('-', ' ')}
           </h4>
         </div>
-        <span className="text-xs bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono">
+        <span className="text-[10px] bg-[#4880FF]/10 text-[#4880FF] px-2.5 py-1 rounded-full font-sans font-bold">
           Interactive SVG Simulation
         </span>
       </div>

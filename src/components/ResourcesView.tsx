@@ -1,4 +1,4 @@
-import { ExternalLink, BookMarked, Layers, Video, ShieldAlert, BookOpen } from 'lucide-react';
+import { ExternalLink, BookMarked, Layers, BookOpen } from 'lucide-react';
 
 export default function ResourcesView() {
   const cheatSheets = [
@@ -62,24 +62,24 @@ export default function ResourcesView() {
   ];
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 font-sans">
       {/* Introduction Banner */}
-      <div className="bg-slate-900 border border-slate-805 rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm animate-fade-in animate-duration-150">
         <div className="space-y-1">
-          <h3 className="text-xl font-sans font-bold text-slate-100">Curated Interview Resources</h3>
-          <p className="text-sm text-slate-400">
+          <h3 className="text-xl font-sans font-extrabold text-slate-800 dark:text-slate-100">Curated Interview Resources</h3>
+          <p className="text-xs text-slate-500 dark:text-slate-400 font-sans">
             A hand-picked collection of complexity reference databases, academic tutorials, and whiteboard channels.
           </p>
         </div>
-        <BookMarked className="w-8 h-8 text-indigo-400 shrink-0 hidden md:block" />
+        <BookMarked className="w-8 h-8 text-[#4880FF] shrink-0 hidden md:block" />
       </div>
 
       {/* Grid split */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 font-sans">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left Column: Complexity Cheatsheets */}
         <div className="space-y-4">
-          <h4 className="text-sm font-mono text-indigo-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <Layers className="w-4 h-4 text-indigo-400" /> Complexity Handbooks
+          <h4 className="text-xs font-sans text-[#4880FF] font-extrabold uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800">
+            <Layers className="w-4 h-4 text-[#4880FF]" /> Complexity Handbooks
           </h4>
 
           <div className="space-y-4">
@@ -89,18 +89,18 @@ export default function ResourcesView() {
                 href={sheet.url}
                 target="_blank"
                 rel="noreferrer"
-                className="block bg-slate-900 hover:bg-slate-850 border border-slate-805 p-5 rounded-xl transition hover:shadow-lg hover:border-slate-700 font-sans cursor-pointer group"
+                className="block bg-white dark:bg-[#232738] hover:bg-slate-50/40 dark:hover:bg-[#1B1E2D]/40 border border-[#F1F2F7] dark:border-[#2C3148] p-5 rounded-2xl transition hover:shadow-md hover:border-[#4880FF]/30 font-sans cursor-pointer group shadow-sm"
                 referrerPolicy="no-referrer"
               >
                 <div className="flex justify-between items-start">
-                  <span className="text-[9px] font-mono bg-slate-950 text-indigo-400 px-2 py-0.5 rounded font-bold uppercase">
+                  <span className="text-[9px] font-sans bg-[#4880FF]/10 text-[#4880FF] px-2.5 py-0.5 rounded-full font-bold uppercase">
                     {sheet.badge}
                   </span>
-                  <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-indigo-400 transition" />
+                  <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#4880FF] transition-colors" />
                 </div>
 
-                <h5 className="text-sm font-bold text-slate-205 mt-2">{sheet.title}</h5>
-                <p className="text-xs text-slate-400 leading-relaxed mt-2">{sheet.desc}</p>
+                <h5 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 mt-3">{sheet.title}</h5>
+                <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-2">{sheet.desc}</p>
               </a>
             ))}
           </div>
@@ -108,8 +108,8 @@ export default function ResourcesView() {
 
         {/* Right Columns: Curated Guides lists */}
         <div className="lg:col-span-2 space-y-4">
-          <h4 className="text-sm font-mono text-emerald-400 font-bold uppercase tracking-wider flex items-center gap-1.5">
-            <BookOpen className="w-4 h-4 text-emerald-450" /> Online Learning & Lectures Platforms
+          <h4 className="text-xs font-sans text-[#00B69B] font-extrabold uppercase tracking-wider flex items-center gap-1.5 pb-2 border-b border-slate-100 dark:border-slate-800">
+            <BookOpen className="w-4 h-4 text-[#00B69B]" /> Online Learning & Lectures Platforms
           </h4>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -119,22 +119,22 @@ export default function ResourcesView() {
                 href={res.url}
                 target="_blank"
                 rel="noreferrer"
-                className="bg-slate-900 hover:bg-slate-850 border border-slate-805 p-5 rounded-xl transition hover:shadow-lg hover:border-slate-700 font-sans cursor-pointer group flex flex-col justify-between"
+                className="bg-white dark:bg-[#232738] hover:bg-slate-50/40 dark:hover:bg-[#1B1E2D]/40 border border-[#F1F2F7] dark:border-[#2C3148] p-5 rounded-2xl transition hover:shadow-md hover:border-[#4880FF]/30 font-sans cursor-pointer group flex flex-col justify-between shadow-sm"
                 referrerPolicy="no-referrer"
               >
                 <div className="space-y-2">
                   <div className="flex justify-between items-start">
-                    <span className="text-[9px] font-mono bg-slate-950 text-emerald-400 px-2 py-0.5 rounded font-bold uppercase uppercase">
+                    <span className="text-[9px] font-sans bg-[#00B69B]/10 text-[#00B69B] px-2.5 py-0.5 rounded-full font-bold uppercase">
                       {res.type}
                     </span>
-                    <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-emerald-400 transition" />
+                    <ExternalLink className="w-3.5 h-3.5 text-slate-400 group-hover:text-[#00B69B] transition-colors" />
                   </div>
 
-                  <h5 className="text-sm font-bold text-slate-200">{res.title}</h5>
-                  <p className="text-xs text-slate-400 leading-relaxed mt-1.5">{res.desc}</p>
+                  <h5 className="text-sm font-extrabold text-slate-800 dark:text-slate-200 mt-2">{res.title}</h5>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1.5">{res.desc}</p>
                 </div>
                 
-                <span className="text-[10px] text-indigo-400 font-mono mt-3 block group-hover:underline">Explore resource ↗</span>
+                <span className="text-[10px] text-[#4880FF] font-sans mt-3.5 block group-hover:underline font-bold">Explore resource ↗</span>
               </a>
             ))}
           </div>

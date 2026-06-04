@@ -51,76 +51,85 @@ export default function Dashboard({ progress, onNavigate }: DashboardProps) {
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-slate-900 via-indigo-950 to-slate-900 border border-slate-800 rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-xl">
-        <div className="absolute right-0 top-0 -mt-12 -mr-12 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl" />
+      <div className="bg-gradient-to-r from-[#4880FF] to-[#3570F0] text-white rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-md">
+        <div className="absolute right-0 top-0 -mt-12 -mr-12 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
         <div className="relative z-10 max-w-2xl space-y-3">
-          <span className="bg-indigo-950 text-indigo-400 border border-indigo-900 text-xs px-2.5 py-1 rounded-full font-mono font-semibold tracking-wide uppercase">
-            SDE Interview Prep Workspace
+          <span className="bg-white/20 text-white text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider select-none">
+            DashStack Workspace • Premium DSA Portal
           </span>
-          <h2 className="text-3xl md:text-4xl font-sans font-bold text-slate-100 tracking-tight leading-tight">
-            Elevate Your Coding Interviews inside the DSA Prep Hub
+          <h2 className="text-3xl md:text-4xl font-sans font-black tracking-tight leading-tight text-white animate-fade-in">
+            Elevate Your SDE Interviews inside the DSA Prep Hub
           </h2>
-          <p className="text-slate-400 text-sm md:text-base leading-relaxed">
-            Follow our interactive roadmap, learn visual patterns, practice structured problems, and execute high-speed SDE revision schedules.
+          <p className="text-blue-50/95 text-xs md:text-sm leading-relaxed max-w-xl">
+            Follow our interactive roadmap progress chart, visualize classic algorithmic patterns, practice curated questions, and execute fast SDE schedules.
           </p>
         </div>
       </div>
 
       {/* Metrics Row */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         {/* Metric 1 */}
-        <div className="bg-slate-900 border border-slate-805 rounded-xl p-5 flex items-center gap-4 hover:border-slate-700 transition duration-150">
-          <div className="p-3 bg-indigo-950 rounded-lg text-indigo-400">
-            <Trophy className="w-6 h-6" />
+        <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-5 flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-md transition-all duration-155">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Interview Readiness</span>
+            <span className="text-2xl font-extrabold text-slate-800 dark:text-white font-mono">{readinessPercent}%</span>
+            <span className="text-[10px] text-[#00B69B] bg-[#00B69B]/10 font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 w-max">
+              📈 Upward Trend
+            </span>
           </div>
-          <div>
-            <span className="text-xs text-slate-500 font-mono font-medium block">Interview Readiness</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-slate-100 font-mono">{readinessPercent}%</span>
-              <span className="text-[10px] text-emerald-400 font-mono">Completed</span>
-            </div>
+          <div className="p-3 bg-[#4880FF]/12 text-[#4880FF] rounded-2xl">
+            <Trophy className="w-6 h-6" />
           </div>
         </div>
 
         {/* Metric 2 */}
-        <div className="bg-slate-900 border border-slate-805 rounded-xl p-5 flex items-center gap-4 hover:border-slate-700 transition duration-150">
-          <div className="p-3 bg-emerald-950 rounded-lg text-emerald-400">
-            <CheckCircle2 className="w-6 h-6" />
-          </div>
-          <div>
-            <span className="text-xs text-slate-500 font-mono font-medium block">Topics Mastered</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-slate-100 font-mono">{completedTopicsCount}</span>
-              <span className="text-slate-500 text-xs font-mono">/ {totalTopics}</span>
+        <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-5 flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-md transition-all duration-155">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Topics Mastered</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-extrabold text-slate-800 dark:text-white font-mono">{completedTopicsCount}</span>
+              <span className="text-slate-400 text-xs font-mono">/ {totalTopics}</span>
             </div>
+            <span className="text-[10px] text-[#4880FF] bg-[#4880FF]/10 font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 w-max">
+              ✨ Steady Growth
+            </span>
+          </div>
+          <div className="p-3 bg-[#00B69B]/12 text-[#00B69B] rounded-2xl">
+            <CheckCircle2 className="w-6 h-6" />
           </div>
         </div>
 
         {/* Metric 3 */}
-        <div className="bg-slate-900 border border-slate-805 rounded-xl p-5 flex items-center gap-4 hover:border-slate-700 transition duration-150">
-          <div className="p-3 bg-sky-950 rounded-lg text-sky-400">
-            <Award className="w-6 h-6" />
-          </div>
-          <div>
-            <span className="text-xs text-slate-500 font-mono font-medium block">Problems Solved</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-slate-100 font-mono">{solvedProblemsCount}</span>
-              <span className="text-slate-500 text-xs font-mono">/ {totalProblemsCount}</span>
+        <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-5 flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-md transition-all duration-155">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Problems Solved</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-extrabold text-slate-800 dark:text-white font-mono">{solvedProblemsCount}</span>
+              <span className="text-slate-400 text-xs font-mono">/ {totalProblemsCount}</span>
             </div>
+            <span className="text-[10px] text-[#FFA800] bg-[#FFA800]/10 font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 w-max">
+              🔥 Practice Hotstreak
+            </span>
+          </div>
+          <div className="p-3 bg-[#FFA800]/12 text-[#FFA800] rounded-2xl">
+            <Award className="w-6 h-6" />
           </div>
         </div>
 
         {/* Metric 4 */}
-        <div className="bg-slate-900 border border-slate-805 rounded-xl p-5 flex items-center gap-4 hover:border-slate-700 transition duration-150">
-          <div className="p-3 bg-amber-950 rounded-lg text-amber-500">
-            <Flame className="w-6 h-6 animate-pulse" />
-          </div>
-          <div>
-            <span className="text-xs text-slate-500 font-mono font-medium block">Revision Streak</span>
-            <div className="flex items-baseline gap-1.5 mt-0.5">
-              <span className="text-2xl font-bold text-slate-100 font-mono">{progress.revisionStreak}</span>
-              <span className="text-slate-550 text-[10px] font-mono">Days consecutive</span>
+        <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-5 flex items-center justify-between shadow-[0_4px_20px_rgba(0,0,0,0.02)] hover:shadow-md transition-all duration-155">
+          <div className="space-y-1">
+            <span className="text-[11px] font-bold text-slate-400 dark:text-slate-500 uppercase tracking-wider block">Revision Streak</span>
+            <div className="flex items-baseline gap-1">
+              <span className="text-2xl font-extrabold text-slate-800 dark:text-white font-mono">{progress.revisionStreak}</span>
+              <span className="text-slate-400 text-xs font-semibold">Days</span>
             </div>
+            <span className="text-[10px] text-[#FF3E3E] bg-[#FF3E3E]/10 font-bold px-1.5 py-0.5 rounded flex items-center gap-0.5 w-max">
+              🚀 High Momentum
+            </span>
+          </div>
+          <div className="p-3 bg-[#FF3E3E]/12 text-[#FF3E3E] rounded-2xl">
+            <Flame className="w-6 h-6" />
           </div>
         </div>
       </div>
@@ -130,35 +139,35 @@ export default function Dashboard({ progress, onNavigate }: DashboardProps) {
         {/* Left column is Daily Challenge and recommended learning */}
         <div className="lg:col-span-2 space-y-6">
           {/* Daily Challenge Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 relative overflow-hidden">
+          <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-6 relative overflow-hidden shadow-sm">
             <div className="flex justify-between items-start mb-4">
               <div className="flex items-center gap-2">
-                <Calendar className="w-5 h-5 text-indigo-400" />
-                <h3 className="text-lg font-sans font-bold text-slate-200">Daily Coding Challenge</h3>
+                <Calendar className="w-5 h-5 text-[#4880FF]" />
+                <h3 className="text-lg font-sans font-extrabold text-slate-800 dark:text-slate-100">Daily Coding Challenge</h3>
               </div>
-              <span className="text-[10px] bg-slate-800 text-slate-400 px-2 py-0.5 rounded font-mono font-bold">
+              <span className="text-[10px] bg-slate-100 dark:bg-[#1B1E2D] text-slate-500 dark:text-slate-400 px-2.5 py-1 rounded-full font-sans font-bold">
                 Level: {dailyProblem.difficulty}
               </span>
             </div>
 
-            <div className="border border-slate-800 bg-slate-950 rounded-lg p-4 mb-4">
+            <div className="border border-slate-100 dark:border-[#2C3148] bg-slate-50 dark:bg-[#1B1E2D] rounded-xl p-4 mb-4">
               <div className="flex items-center justify-between">
-                <span className="text-xs font-mono text-indigo-400 font-semibold uppercase">{dailyProblem.tags.join(' • ')}</span>
-                <span className="text-xs font-mono text-slate-500">{dailyProblem.pattern}</span>
+                <span className="text-xs font-sans text-[#4880FF] font-semibold uppercase">{dailyProblem.tags.join(' • ')}</span>
+                <span className="text-xs font-mono text-slate-500 dark:text-slate-450">{dailyProblem.pattern}</span>
               </div>
-              <h4 className="text-base font-bold text-slate-200 mt-1">{dailyProblem.title}</h4>
-              <p className="text-xs text-slate-400 mt-2 leading-relaxed">{dailyProblem.explanation}</p>
+              <h4 className="text-base font-bold text-slate-800 dark:text-slate-100 mt-1">{dailyProblem.title}</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-2 leading-relaxed">{dailyProblem.explanation}</p>
               
-              <div className="flex gap-4 mt-3 pt-3 border-t border-slate-900 text-[11px] font-mono text-slate-500">
-                <span>Time: {dailyProblem.timeComplexity}</span>
-                <span>Space: {dailyProblem.spaceComplexity}</span>
+              <div className="flex gap-4 mt-3 pt-3 border-t border-slate-200/40 dark:border-slate-800 text-[11px] font-mono text-slate-500">
+                <span>Time Complexity: <strong className="text-[#00B69B]">{dailyProblem.timeComplexity}</strong></span>
+                <span>Space Complexity: <strong className="text-[#4880FF]">{dailyProblem.spaceComplexity}</strong></span>
               </div>
             </div>
 
             <div className="flex flex-col sm:flex-row gap-3">
               <button 
                 onClick={() => onNavigate('practice')}
-                className="bg-indigo-650 hover:bg-indigo-600 text-white text-xs font-semibold px-4 py-2 rounded flex items-center justify-center gap-1.5 transition-colors"
+                className="bg-[#4880FF] hover:bg-[#3570F0] text-white text-xs font-bold px-4 py-2.5 rounded-lg flex items-center justify-center gap-1.5 transition-colors select-none shadow-sm"
               >
                 Go Solve Problem <ChevronRight className="w-3.5 h-3.5" />
               </button>
@@ -166,13 +175,13 @@ export default function Dashboard({ progress, onNavigate }: DashboardProps) {
                 href={dailyProblem.leetcodeUrl} 
                 target="_blank" 
                 rel="noreferrer" 
-                className="border border-slate-800 hover:bg-slate-800 text-slate-300 text-xs font-semibold px-4 py-2 rounded text-center transition-colors"
+                className="border border-[#F1F2F7] dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-[#1B1E2D] text-slate-600 dark:text-slate-300 text-xs font-semibold px-4 py-2.5 rounded-lg text-center transition-colors shadow-sm"
                 referrerPolicy="no-referrer"
               >
                 Open on LeetCode
               </a>
               {isDailySolved && (
-                <div className="text-emerald-400 font-mono text-xs flex items-center justify-center gap-1">
+                <div className="text-[#00B69B] font-sans text-xs font-bold flex items-center justify-center gap-1">
                   <Check className="w-4 h-4" /> Already Solved!
                 </div>
               )}
@@ -180,32 +189,32 @@ export default function Dashboard({ progress, onNavigate }: DashboardProps) {
           </div>
 
           {/* Quick Start Next Topic Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
+          <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-6 shadow-sm">
             <div className="flex items-center justify-between mb-4">
               <div className="flex items-center gap-2">
-                <BookOpen className="w-5 h-5 text-emerald-400" />
-                <h3 className="text-lg font-sans font-bold text-slate-200">Recommended Next Step</h3>
+                <BookOpen className="w-5 h-5 text-[#00B69B]" />
+                <h3 className="text-lg font-sans font-extrabold text-slate-800 dark:text-slate-100">Recommended Next Step</h3>
               </div>
-              <span className="text-xs text-slate-500 font-mono">Based on incomplete nodes</span>
+              <span className="text-xs text-slate-400 dark:text-slate-500 font-sans">Based on incomplete nodes</span>
             </div>
 
-            <div className="bg-slate-950 border border-slate-850 rounded-lg p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
+            <div className="bg-slate-50 dark:bg-[#1B1E2D] border border-slate-100 dark:border-[#2C3148] rounded-xl p-5 flex flex-col md:flex-row md:items-center justify-between gap-4">
               <div className="space-y-1">
-                <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-emerald-400 bg-emerald-950/40 px-2 py-0.5 rounded border border-emerald-900/40">
+                <span className="text-[10px] uppercase font-sans tracking-wider font-extrabold text-[#00B69B] bg-[#00B69B]/10 px-2.5 py-1 rounded-full border border-[#00B69B]/20">
                   Topic: {nextTopic.name}
                 </span>
-                <p className="text-xs text-slate-400 mt-2 leading-relaxed">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-2.5 leading-relaxed">
                   {nextTopic.overview}
                 </p>
                 <div className="flex gap-4 mt-3 text-xs text-slate-500 font-mono">
                   <span>Prereqs: {nextTopic.prerequisites.join(', ') || 'None'}</span>
-                  <span>Est: {nextTopic.studyTime}</span>
+                  <span>Est. Time: <strong className="text-[#4880FF]">{nextTopic.studyTime}</strong></span>
                 </div>
               </div>
 
               <button 
                 onClick={() => onNavigate('topics', nextTopic.id)}
-                className="bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold px-5 py-2.5 rounded-lg flex items-center justify-center gap-1 mt-2 md:mt-0 shrink-0 select-none shadow shadow-emerald-900"
+                className="bg-[#00B69B] hover:bg-[#009c85] text-white text-xs font-bold px-5 py-2.5 rounded-lg flex items-center justify-center gap-1 mt-2 md:mt-0 shrink-0 select-none shadow-sm"
               >
                 Study Topic <ChevronRight className="w-4 h-4" />
               </button>
@@ -216,52 +225,54 @@ export default function Dashboard({ progress, onNavigate }: DashboardProps) {
         {/* Right column is interactive recent views or interview prep stats */}
         <div className="space-y-6">
           {/* Quick SDE Preparation Guides links */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6 space-y-4">
-            <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
-              <Activity className="w-5 h-5 text-indigo-400" />
-              <h3 className="text-base font-sans font-bold text-slate-200">Revision & Prep Tracks</h3>
+          <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-6 space-y-4 shadow-sm">
+            <div className="flex items-center gap-2 border-b border-slate-100 dark:border-[#2C3148] pb-3">
+              <Activity className="w-5 h-5 text-[#4880FF]" />
+              <h3 className="text-base font-sans font-extrabold text-slate-800 dark:text-slate-100">Revision & Prep Tracks</h3>
             </div>
 
             <div className="space-y-3 font-sans">
               <div 
                 onClick={() => onNavigate('prep-mode')} 
-                className="bg-slate-950 hover:bg-slate-850 p-3 rounded-lg border border-slate-850 cursor-pointer transition flex justify-between items-center"
+                className="bg-slate-50 dark:bg-[#1B1E2D] hover:bg-slate-100/50 dark:hover:bg-[#2C3148] p-3 rounded-xl border border-slate-100 dark:border-slate-800 cursor-pointer transition flex justify-between items-center"
               >
                 <div>
-                  <span className="block text-xs font-bold text-slate-205">30-Day SDE Schedule</span>
-                  <span className="text-[10px] text-slate-500">Comprehensive coding drill</span>
+                  <span className="block text-xs font-bold text-slate-800 dark:text-slate-205">30-Day SDE Schedule</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">Comprehensive coding drill</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-600" />
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               </div>
 
               <div 
                 onClick={() => onNavigate('prep-mode')} 
-                className="bg-slate-950 hover:bg-slate-850 p-3 rounded-lg border border-slate-850 cursor-pointer transition flex justify-between items-center"
+                className="bg-slate-50 dark:bg-[#1B1E2D] hover:bg-slate-100/50 dark:hover:bg-[#2C3148] p-3 rounded-xl border border-slate-100 dark:border-slate-800 cursor-pointer transition flex justify-between items-center"
               >
                 <div>
-                  <span className="block text-xs font-bold text-slate-205">14-Day Fast Track</span>
-                  <span className="text-[10px] text-slate-500">Accelerated preparation</span>
+                  <span className="block text-xs font-bold text-slate-800 dark:text-slate-205">14-Day Fast Track</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">Accelerated preparation</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-600" />
+                <ChevronRight className="w-4 h-4 text-slate-400" />
               </div>
 
               <div 
                 onClick={() => onNavigate('prep-mode')} 
-                className="bg-slate-950 hover:bg-slate-850 p-3 rounded-lg border border-slate-850 cursor-pointer transition flex justify-between items-center"
+                className="bg-slate-50 dark:bg-[#1B1E2D] hover:bg-slate-100/50 dark:hover:bg-[#2C3148] p-3 rounded-xl border border-slate-105 dark:border-slate-800 cursor-pointer transition flex justify-between items-center"
               >
                 <div>
-                  <span className="block text-xs font-bold text-red-400">7-Day Emergency Plan</span>
-                  <span className="text-[10px] text-slate-500">Highest-return patterns only</span>
+                  <span className="block text-xs font-bold text-[#FF3E3E]">7-Day Emergency Plan</span>
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500">Highest-return patterns only</span>
                 </div>
-                <ChevronRight className="w-4 h-4 text-slate-600" />
+                <ChevronRight className="w-4 h-4 text-red-400" />
               </div>
             </div>
           </div>
 
           {/* Tips Card */}
-          <div className="bg-slate-900 border border-slate-800 rounded-xl p-6">
-            <h3 className="text-sm font-mono text-indigo-400 font-semibold mb-3">💡 Interview Day Tip</h3>
-            <p className="text-xs text-slate-400 leading-relaxed font-sans">
+          <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-6 shadow-sm">
+            <h3 className="text-sm font-sans font-bold text-[#4880FF] mb-3 flex items-center gap-1.5">
+              <span>💡</span> Interview Day Tip
+            </h3>
+            <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans">
               "Never write code immediately. Explain your brute force solution first, confirm runtime/space bounds, write down edge cases, and describe your intended optimized pointers aloud before placing lines."
             </p>
           </div>

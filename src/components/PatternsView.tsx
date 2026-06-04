@@ -184,10 +184,10 @@ export default function PatternsView() {
   };
 
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+    <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 font-sans">
       {/* Pattern list selectors */}
-      <div className="lg:col-span-1 bg-slate-900 border border-slate-805 rounded-xl p-4 h-fit space-y-1 select-none">
-        <h3 className="text-xs font-mono font-bold text-slate-500 uppercase px-3 pb-2.5 border-b border-slate-805 mb-2 tracking-wider">
+      <div className="lg:col-span-1 bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-4 h-fit space-y-1.5 select-none shadow-sm animate-fade-in">
+        <h3 className="text-[10px] font-sans font-extrabold text-slate-400 dark:text-slate-500 uppercase px-3 pb-3 border-b border-slate-100 dark:border-[#2C3148] mb-3 tracking-wider">
           DSA PATTERN BANK
         </h3>
         
@@ -195,10 +195,10 @@ export default function PatternsView() {
           <button 
             key={p.id}
             onClick={() => { setActivePatternId(p.id); setActiveLang('java'); }}
-            className={`w-full text-left px-3 py-2.5 rounded text-xs transition font-mono ${
+            className={`w-full text-left px-3 py-2 rounded-xl text-xs transition-all duration-155 font-mono ${
               activePatternId === p.id 
-                ? 'bg-indigo-950/60 border border-indigo-900 text-indigo-400 font-semibold' 
-                : 'text-slate-400 hover:text-slate-200 border border-transparent'
+                ? 'bg-[#4880FF]/10 text-[#4880FF] font-bold border border-[#4880FF]/20 shadow-sm' 
+                : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800'
             }`}
           >
             {p.name.replace(' Pattern', '')}
@@ -208,50 +208,50 @@ export default function PatternsView() {
 
       {/* Main Pattern Detail Area */}
       <div className="lg:col-span-3 space-y-6">
-        <div className="bg-slate-900 border border-slate-805 rounded-2xl p-6 space-y-4">
+        <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-6 space-y-4 shadow-sm">
           <div className="space-y-1">
-            <span className="text-[10px] uppercase font-mono tracking-wider font-bold text-indigo-400">
+            <span className="text-[10px] uppercase tracking-wider font-extrabold text-[#4880FF] bg-[#4880FF]/10 px-2.5 py-1 rounded-full">
               Interactive Pattern Resource
             </span>
-            <h2 className="text-xl md:text-2xl font-sans font-bold text-slate-100">{currentPattern.name}</h2>
+            <h2 className="text-xl md:text-2xl font-sans font-extrabold text-slate-800 dark:text-slate-100 mt-2">{currentPattern.name}</h2>
           </div>
 
-          <p className="text-xs md:text-sm text-slate-400 leading-relaxed font-sans border-t border-slate-800 pt-4">
+          <p className="text-xs md:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-sans border-t border-slate-100 dark:border-slate-800/40 pt-4">
             {currentPattern.concept}
           </p>
         </div>
 
         {/* Template Code with dynamic toggles */}
-        <div className="bg-slate-900 border border-slate-805 rounded-2xl p-6 space-y-4">
-          <div className="flex justify-between items-center border-b border-slate-800 pb-3 flex-wrap gap-2">
-            <span className="text-xs font-mono text-slate-330 font-bold flex items-center gap-1.5">
+        <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-6 space-y-4 shadow-sm">
+          <div className="flex justify-between items-center border-b border-slate-100 dark:border-slate-800 pb-3 flex-wrap gap-2">
+            <span className="text-xs font-sans text-slate-705 dark:text-slate-330 font-bold flex items-center gap-1.5">
               <Sparkles className="w-4 h-4 text-amber-500" /> Pattern Boilerplate Template
             </span>
 
-            <div className="flex gap-2 items-center font-mono select-none">
+            <div className="flex gap-2 items-center select-none font-sans">
               <button 
                 onClick={() => setActiveLang('java')}
-                className={`py-1 px-3 text-[10px] font-bold rounded ${activeLang === 'java' ? 'bg-indigo-950 border border-indigo-900 text-indigo-400' : 'text-slate-505'}`}
+                className={`py-1 px-3 text-[10px] font-bold rounded-lg transition ${activeLang === 'java' ? 'bg-[#4880FF]/10 border border-[#4880FF]/20 text-[#4880FF]' : 'text-slate-500 hover:text-[#4880FF]'}`}
               >
                 Java
               </button>
               <button 
                 onClick={() => setActiveLang('python')}
-                className={`py-1 px-3 text-[10px] font-bold rounded ${activeLang === 'python' ? 'bg-indigo-950 border border-indigo-900 text-indigo-400' : 'text-slate-505'}`}
+                className={`py-1 px-3 text-[10px] font-bold rounded-lg transition ${activeLang === 'python' ? 'bg-[#4880FF]/10 border border-[#4880FF]/20 text-[#4880FF]' : 'text-slate-500 hover:text-[#4880FF]'}`}
               >
                 Python3
               </button>
 
               <button 
                 onClick={() => handleCopy(currentPattern.template[activeLang], currentPattern.id)}
-                className="text-slate-500 hover:text-indigo-400 transition text-[10px] bg-slate-950 border border-slate-850 py-1 px-2.5 rounded font-bold"
+                className="text-slate-650 dark:text-slate-400 hover:text-[#4880FF] transition text-[10px] bg-slate-50 dark:bg-[#1B1E2D] border border-slate-100 dark:border-slate-800 py-1 px-2.5 rounded-lg font-bold shadow-sm"
               >
                 {copiedId === currentPattern.id ? 'Copied code!' : 'Copy Code'}
               </button>
             </div>
           </div>
 
-          <pre className="overflow-x-auto bg-slate-950 border border-slate-850 p-4 rounded-lg text-xs font-mono text-slate-300 leading-relaxed">
+          <pre className="overflow-x-auto bg-slate-50 dark:bg-[#1B1E2D] border border-slate-100 dark:border-[#2C3148] p-4 rounded-xl text-xs font-mono text-slate-600 dark:text-slate-350 leading-relaxed shadow-inner">
             {currentPattern.template[activeLang]}
           </pre>
         </div>
@@ -259,8 +259,8 @@ export default function PatternsView() {
         {/* Pitfalls & Questions row split */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
           {/* Classic Questions */}
-          <div className="bg-slate-900 border border-slate-805 rounded-xl p-5 space-y-3">
-            <h3 className="text-sm font-sans font-bold text-slate-200">Recommended Practice Problems</h3>
+          <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-5 space-y-3.5 shadow-sm">
+            <h3 className="text-sm font-sans font-bold text-slate-800 dark:text-slate-200">Recommended Practice Problems</h3>
             <div className="space-y-2.5">
               {currentPattern.questions.map((q, idx) => (
                 <a 
@@ -268,25 +268,25 @@ export default function PatternsView() {
                   href={q.link}
                   target="_blank"
                   rel="noreferrer"
-                  className="block bg-slate-950 p-3 rounded-lg border border-slate-850/60 hover:border-indigo-500/40 hover:bg-slate-850/20 transition flex justify-between items-center text-xs font-sans text-slate-300"
+                  className="block bg-slate-105 dark:bg-[#1B1E2D] p-3 rounded-xl border border-slate-100 dark:border-slate-800 hover:border-[#4880FF]/50 hover:bg-slate-100 dark:hover:bg-[#4880FF]/5 transition-all duration-155 flex justify-between items-center text-xs font-sans text-slate-600 dark:text-slate-300 shadow-sm"
                   referrerPolicy="no-referrer"
                 >
-                  <span className="font-semibold">{q.title}</span>
-                  <span className="text-[10px] text-indigo-400 font-mono flex items-center gap-1 font-bold">LeetCode ↗</span>
+                  <span className="font-semibold truncate pr-2">{q.title}</span>
+                  <span className="text-[10px] text-[#4880FF] font-sans flex items-center gap-1 font-bold shrink-0">LeetCode ↗</span>
                 </a>
               ))}
             </div>
           </div>
 
           {/* High Yield Pitfalls */}
-          <div className="bg-slate-900 border border-slate-805 rounded-xl p-5 space-y-3">
-            <h3 className="text-sm font-sans font-bold text-slate-205 flex items-center gap-1.5">
+          <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-5 space-y-3.5 shadow-sm">
+            <h3 className="text-sm font-sans font-bold text-slate-800 dark:text-slate-205 flex items-center gap-1.5">
               <ShieldAlert className="w-4 h-4 text-amber-500" /> Watch Out! Common Pitfalls
             </h3>
             <div className="space-y-2.5">
               {currentPattern.pitfalls.map((pit, idx) => (
-                <div key={idx} className="bg-slate-955 p-3 rounded-lg border border-slate-850/60 flex gap-2 text-xs text-slate-400 leading-relaxed">
-                  <AlertCircle className="w-3.5 h-3.5 text-coral-405 shrink-0 mt-0.5" />
+                <div key={idx} className="bg-slate-105 dark:bg-[#1B1E2D] p-3 rounded-xl border border-slate-100 dark:border-slate-800 flex gap-2.5 text-xs text-slate-500 dark:text-slate-400 leading-relaxed shadow-sm">
+                  <AlertCircle className="w-3.5 h-3.5 text-red-500 shrink-0 mt-0.5" />
                   <span>{pit}</span>
                 </div>
               ))}
