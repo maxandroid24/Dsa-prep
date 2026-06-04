@@ -44,7 +44,7 @@ export default function TopicsView({
   };
 
   // Maps active topic to matching sandbox SVG visualizer mode
-  const getVisualizerType = (topicId: string): 'linked-list' | 'tree' | 'heap' | 'graph' | 'trie' | 'union-find' | 'array' | 'hashing' | 'two-pointers' | 'sliding-window' | 'binary-search' | 'dp' | 'lru-cache' => {
+  const getVisualizerType = (topicId: string): 'linked-list' | 'tree' | 'heap' | 'graph' | 'trie' | 'union-find' | 'array' | 'hashing' | 'two-pointers' | 'sliding-window' | 'binary-search' | 'dp' | 'lru-cache' | 'greedy' | 'bit-manipulation' | 'number-theory' => {
     switch (topicId) {
       case 'arrays': return 'array';
       case 'hashing': return 'hashing';
@@ -59,6 +59,9 @@ export default function TopicsView({
       case 'lru-cache': return 'lru-cache';
       case 'trie': return 'trie';
       case 'union-find': return 'union-find';
+      case 'greedy': return 'greedy';
+      case 'bit-manipulation': return 'bit-manipulation';
+      case 'number-theory': return 'number-theory';
       default: return 'array'; // fallback is Array
     }
   };

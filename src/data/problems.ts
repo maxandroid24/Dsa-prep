@@ -1,9 +1,10 @@
 import { Problem, Difficulty } from '../types';
 
-// Let's define the 13 topic IDs
+// Let's define the 16 topic IDs
 const topicIds = [
   'arrays', 'hashing', 'two-pointers', 'sliding-window', 'binary-search',
-  'linked-lists', 'trees', 'heaps', 'graphs', 'dp', 'lru-cache', 'trie', 'union-find'
+  'linked-lists', 'trees', 'heaps', 'graphs', 'dp', 'lru-cache', 'trie', 'union-find',
+  'greedy', 'bit-manipulation', 'number-theory'
 ];
 
 // Curated high-fidelity classic interview problems

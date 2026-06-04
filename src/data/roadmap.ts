@@ -117,5 +117,32 @@ export const dsaRoadmap: RoadmapNode[] = [
     prerequisites: ['graphs'],
     x: 90,
     y: 130
+  },
+  {
+    id: 'greedy',
+    name: 'Greedy Algorithms',
+    difficulty: 'Medium',
+    estimatedStudyTime: '4-5 Hours',
+    prerequisites: ['arrays'],
+    x: 10,
+    y: 145
+  },
+  {
+    id: 'bit-manipulation',
+    name: 'Bit Manipulation',
+    difficulty: 'Medium',
+    estimatedStudyTime: '3-4 Hours',
+    prerequisites: ['arrays'],
+    x: 50,
+    y: 145
+  },
+  {
+    id: 'number-theory',
+    name: 'Number Theory',
+    difficulty: 'Medium',
+    estimatedStudyTime: '4-5 Hours',
+    prerequisites: ['arrays'],
+    x: 90,
+    y: 145
   }
 ];

@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { Play, RotateCcw, ArrowRight, Check, Search, Plus, Trash2, HelpCircle } from 'lucide-react';
 
 interface VisualizerProps {
-  type: 'linked-list' | 'tree' | 'heap' | 'graph' | 'trie' | 'union-find' | 'array' | 'hashing' | 'two-pointers' | 'sliding-window' | 'binary-search' | 'dp' | 'lru-cache';
+  type: 'linked-list' | 'tree' | 'heap' | 'graph' | 'trie' | 'union-find' | 'array' | 'hashing' | 'two-pointers' | 'sliding-window' | 'binary-search' | 'dp' | 'lru-cache' | 'greedy' | 'bit-manipulation' | 'number-theory';
 }
 
 export default function Visualizers({ type }: VisualizerProps) {
@@ -36,6 +36,9 @@ export default function Visualizers({ type }: VisualizerProps) {
         {type === 'binary-search' && <BinarySearchVisualizer />}
         {type === 'dp' && <DpVisualizer />}
         {type === 'lru-cache' && <LruCacheVisualizer />}
+        {type === 'greedy' && <GreedyVisualizer />}
+        {type === 'bit-manipulation' && <BitManipulationVisualizer />}
+        {type === 'number-theory' && <NumberTheoryVisualizer />}
       </div>
     </div>
   );
@@ -2650,6 +2653,347 @@ function LruCacheVisualizer() {
 
       <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
         <strong className="text-rose-400">Logger:</strong> {statusText}
+      </p>
+    </div>
+  );
+}
+
+// ==========================================
+// 14. GREEDY VISUALIZER (Activity Interval Selection)
+// ==========================================
+function GreedyVisualizer() {
+  const initialActivities = [
+    { id: 'A', name: 'Task A', start: 1, end: 3, color: 'bg-emerald-500' },
+    { id: 'B', name: 'Task B', start: 2, end: 5, color: 'bg-amber-500' },
+    { id: 'C', name: 'Task C', start: 3, end: 9, color: 'bg-sky-500' },
+    { id: 'D', name: 'Task D', start: 6, end: 8, color: 'bg-indigo-500' },
+    { id: 'E', name: 'Task E', start: 5, end: 7, color: 'bg-rose-500' }
+  ];
+  const [activities, setActivities] = useState(initialActivities);
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [isSorted, setIsSorted] = useState(false);
+  const [statusText, setStatusText] = useState('Timeline loaded. Standard greedy strategy is: always select next event that ends as early as possible.');
+
+  const handleSort = () => {
+    const sorted = [...activities].sort((a, b) => a.end - b.end);
+    setActivities(sorted);
+    setIsSorted(true);
+    setStatusText('Sorted activities by ending times! Interval Selection is now straightforward.');
+  };
+
+  const handleGreedySelection = async () => {
+    setStatusText('Running greedy interval selection...');
+    let sortedActivities = [...activities];
+    if (!isSorted) {
+      sortedActivities = [...activities].sort((a, b) => a.end - b.end);
+    }
+    const selected: string[] = [];
+    let lastEnd = -1;
+    for (const act of sortedActivities) {
+      if (act.start >= lastEnd) {
+        selected.push(act.id);
+        lastEnd = act.end;
+        setSelectedIds([...selected]);
+        setStatusText(`Greedily picked Task ${act.id} because it starts after last end (${act.start} >= ${lastEnd === act.end ? 'prev' : lastEnd}) and ends early.`);
+        await new Promise(r => setTimeout(r, 800));
+      }
+    }
+    setStatusText(`Completed greedy interval selection! Maximized non-overlapping activities count to ${selected.length} [${selected.join(', ')}].`);
+  };
+
+  const handleReset = () => {
+    setActivities(initialActivities);
+    setSelectedIds([]);
+    setIsSorted(false);
+    setStatusText('Timeline reset to initial unordered activities.');
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex gap-2.5 flex-wrap">
+        <button 
+          onClick={handleSort}
+          className="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer"
+        >
+          Sort by End Time
+        </button>
+        <button 
+          onClick={handleGreedySelection}
+          className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer"
+        >
+          Run Greedy Selection
+        </button>
+        <button 
+          onClick={handleReset}
+          className="border border-slate-350 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer"
+        >
+          Reset Timeline
+        </button>
+      </div>
+
+      <div className="bg-slate-50 dark:bg-slate-900 border border-slate-150 dark:border-slate-800 rounded-xl p-5 relative min-h-[250px] overflow-hidden select-none">
+        {/* Timeline headers */}
+        <div className="flex border-b border-slate-200 dark:border-slate-800 pb-2 text-[10px] uppercase font-bold text-slate-400 font-mono mb-4 justify-between">
+          <span>Timeline (Slots 0 to 10)</span>
+          <span>Sorted: {isSorted ? 'Yes ✅' : 'No ❌'}</span>
+        </div>
+
+        {/* Timeline Grid */}
+        <div className="grid grid-cols-11 gap-px bg-slate-200 dark:bg-slate-800 text-center text-[10px] font-mono text-slate-500 rounded p-1 mb-5">
+          {Array.from({ length: 11 }).map((_, i) => (
+            <div key={i}>{i}</div>
+          ))}
+        </div>
+
+        {/* Render activities on timeline bar rows */}
+        <div className="space-y-3.5 col">
+          {activities.map((act) => {
+            const isPicked = selectedIds.includes(act.id);
+            return (
+              <div key={act.id} className="flex items-center gap-4 text-xs font-sans">
+                <span className="w-16 font-extrabold text-slate-700 dark:text-slate-300 shrink-0 font-sans tracking-wide">
+                  {act.name} <span className="font-mono text-[9px] text-slate-400">({act.start}-{act.end})</span>
+                </span>
+                <div className="relative flex-1 bg-slate-150 dark:bg-slate-800 h-7 rounded-lg overflow-hidden border border-transparent dark:border-slate-850">
+                  <div 
+                    style={{ 
+                      left: `${(act.start / 10) * 100}%`, 
+                      width: `${((act.end - act.start) / 10) * 100}%` 
+                    }}
+                    className={`absolute top-0 bottom-0 ${act.color} opacity-40 transition-all duration-300`}
+                  />
+                  {isPicked && (
+                    <div 
+                      style={{ 
+                        left: `${(act.start / 10) * 100}%`, 
+                        width: `${((act.end - act.start) / 10) * 100}%` 
+                      }}
+                      className="absolute top-0 bottom-0 bg-emerald-500/90 border border-emerald-400 text-white font-bold text-[9px] flex items-center justify-center tracking-wider transition-all duration-300 shadow-sm"
+                    >
+                      PICKED ✅
+                    </div>
+                  )}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
+        <strong className="text-rose-450">Logger:</strong> {statusText}
+      </p>
+    </div>
+  );
+}
+
+// ==========================================
+// 15. BIT MANIPULATION VISUALIZER (Interactive 8-bit grid)
+// ==========================================
+function BitManipulationVisualizer() {
+  const [num, setNum] = useState<number>(43);
+  const [statusText, setStatusText] = useState('8-bit binary grid loaded. Under Two\'s complement, toggling bits updates standard decimal values.');
+
+  const toggleBit = (bitIndex: number) => {
+    // Toggles the k-th bit (0-indexed from right to left)
+    const nextNum = num ^ (1 << bitIndex);
+    setNum(nextNum);
+    setStatusText(`Toggled bit at position ${bitIndex} (value ${1 << bitIndex}). Decimal updated to ${nextNum}.`);
+  };
+
+  const handleClearLastSetBit = () => {
+    if (num === 0) {
+      setStatusText('Binary number is already 0. No set bits found.');
+      return;
+    }
+    const cleared = num & (num - 1);
+    setNum(cleared);
+    setStatusText(`Cleared rightmost set bit via: num & (num - 1). Value changed from ${num} to ${cleared}.`);
+  };
+
+  const handlePowerOfTwoCheck = () => {
+    const isPower = num > 0 && (num & (num - 1)) === 0;
+    setStatusText(`Expression (num > 0) && (num & (num - 1)) === 0 check on ${num} returned: ${isPower ? 'TRUE! ✅ It is a power of 2.' : 'FALSE! ❌ It is not a power of 2.'}`);
+  };
+
+  return (
+    <div className="space-y-6 select-none font-sans">
+      <div className="flex gap-2.5 flex-wrap items-center">
+        <div className="flex items-center gap-1.5 bg-slate-50 dark:bg-slate-900 border border-slate-150 dark:border-slate-800 rounded-lg px-2.5 py-1 text-slate-700 dark:text-slate-300 font-extrabold text-xs">
+          Decimal: {num}
+        </div>
+        <button 
+          onClick={handleClearLastSetBit}
+          className="bg-indigo-650 hover:bg-indigo-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer"
+        >
+          Clear Rightmost Bit
+        </button>
+        <button 
+          onClick={handlePowerOfTwoCheck}
+          className="bg-sky-605 hover:bg-sky-600 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer"
+        >
+          Check Power of 2
+        </button>
+        <button 
+          onClick={() => { setNum(43); setStatusText('Reset to default value 43.'); }}
+          className="border border-slate-350 dark:border-slate-800 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-600 dark:text-slate-300 px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer"
+        >
+          Reset to 43
+        </button>
+      </div>
+
+      <div className="bg-slate-50 dark:bg-slate-900 border border-slate-150 dark:border-slate-800 rounded-xl p-5 text-center">
+        {/* Bit buttons */}
+        <div className="text-[10px] text-slate-400 uppercase font-bold font-mono pb-2 flex justify-between pr-2 border-b border-slate-150 dark:border-slate-850 mb-4">
+          <span>Bit Positions (7 downTo 0)</span>
+          <span>Binary word mask</span>
+        </div>
+
+        <div className="flex gap-2 justify-center py-4 flex-wrap">
+          {Array.from({ length: 8 }).map((_, i) => {
+            const bitIndex = 7 - i;
+            const isSet = (num & (1 << bitIndex)) !== 0;
+            return (
+              <div key={bitIndex} className="flex flex-col items-center gap-1.5 font-mono">
+                <span className="text-[9px] text-slate-400 font-bold">Bit {bitIndex}</span>
+                <span className="text-[8px] text-slate-400 font-bold">Val {1 << bitIndex}</span>
+                <button
+                  onClick={() => toggleBit(bitIndex)}
+                  className={`w-11 h-11 rounded-lg border font-extrabold text-sm flex items-center justify-center transition cursor-pointer shadow-sm ${
+                    isSet 
+                      ? 'bg-indigo-550 border-indigo-400 text-white hover:bg-indigo-600' 
+                      : 'bg-white border-slate-200 text-slate-700 hover:bg-slate-50 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-750'
+                  }`}
+                >
+                  {isSet ? '1' : '0'}
+                </button>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="mt-2 text-slate-500 dark:text-slate-400 font-mono text-[10px]">
+          Binary Mask: {num.toString(2).padStart(8, '0')}
+        </div>
+      </div>
+
+      <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
+        <strong className="text-rose-455">Logger:</strong> {statusText}
+      </p>
+    </div>
+  );
+}
+
+// ==========================================
+// 16. NUMBER THEORY VISUALIZER (Euclidean GCD Step-by-step solver)
+// ==========================================
+function NumberTheoryVisualizer() {
+  const [valA, setValA] = useState<number>(39);
+  const [valB, setValB] = useState<number>(15);
+  const [steps, setSteps] = useState<{ a: number, b: number, rem: number }[]>([]);
+  const [statusText, setStatusText] = useState('Euclidean GCD step-by-step trace simulation loaded.');
+
+  const handleComputeGCD = () => {
+    let a = Math.abs(valA);
+    let b = Math.abs(valB);
+    const stepList: { a: number, b: number, rem: number }[] = [];
+    
+    while (b !== 0) {
+      const rem = a % b;
+      stepList.push({ a, b, rem });
+      a = b;
+      b = rem;
+    }
+    stepList.push({ a, b: 0, rem: 0 }); // final step
+    setSteps(stepList);
+    setStatusText(`Computed GCD(${valA}, ${valB}) step-by-step. GCD is ${a}.`);
+  };
+
+  const findPrimes = () => {
+    // Sieve prime factorization
+    let num = Math.abs(valA);
+    const facts: number[] = [];
+    for (let x = 2; x * x <= num; x++) {
+      while (num % x === 0) {
+        facts.push(x);
+        num /= x;
+      }
+    }
+    if (num > 1) facts.push(num);
+    setStatusText(`Prime factors for decimal value ${valA} is: [ ${facts.join(' * ')} ] (Processed in O(sqrt(N)) time).`);
+  };
+
+  return (
+    <div className="space-y-6 font-sans">
+      <div className="flex gap-2.5 flex-wrap items-center">
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-extrabold text-slate-500 font-sans uppercase">A:</span>
+          <input 
+            type="number" 
+            value={valA} 
+            onChange={e => setValA(parseInt(e.target.value) || 0)}
+            className="w-16 bg-white dark:bg-[#1B1E2D] border border-slate-250 dark:border-[#2C3148] rounded px-2.5 py-1 text-slate-700 dark:text-slate-350 text-xs font-bold"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <span className="text-xs font-extrabold text-slate-500 font-sans uppercase">B:</span>
+          <input 
+            type="number" 
+            value={valB} 
+            onChange={e => setValB(parseInt(e.target.value) || 0)}
+            className="w-16 bg-white dark:bg-[#1B1E2D] border border-slate-250 dark:border-[#2C3148] rounded px-2.5 py-1 text-slate-700 dark:text-slate-350 text-xs font-bold"
+          />
+        </div>
+        <button 
+          onClick={handleComputeGCD}
+          className="bg-indigo-600 hover:bg-indigo-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer"
+        >
+          Compute GCD
+        </button>
+        <button 
+          onClick={findPrimes}
+          className="bg-emerald-600 hover:bg-emerald-500 text-white px-3.5 py-1.5 rounded-lg text-xs font-semibold cursor-pointer"
+        >
+          Factorize A
+        </button>
+      </div>
+
+      <div className="bg-slate-50 dark:bg-slate-900 border border-slate-150 dark:border-slate-800 rounded-xl p-5">
+        <div className="text-[10px] text-slate-400 uppercase font-bold font-mono pb-2 border-b border-slate-150 dark:border-slate-850 mb-3 flex justify-between pr-2">
+          <span>GCD Euclidean steps</span>
+          <span>Formula: gcd(a, b) = gcd(b, a % b)</span>
+        </div>
+
+        {steps.length === 0 ? (
+          <div className="py-6 text-center text-xs text-slate-400 font-sans">
+            Enter values above and click "Compute GCD" to visualize Euclidean transition states.
+          </div>
+        ) : (
+          <div className="space-y-2.5 py-2 font-mono">
+            {steps.map((step, idx) => {
+              const isLast = idx === steps.length - 1;
+              return (
+                <div key={idx} className="flex justify-between items-center text-xs border-b border-dashed border-slate-200 dark:border-slate-805 pb-1">
+                  <div className="flex items-center gap-2">
+                    <span className="w-5 h-5 rounded bg-indigo-550/10 text-indigo-500 flex items-center justify-center font-bold text-[9px]">{idx + 1}</span>
+                    <span>GCD({step.a}, {step.b})</span>
+                  </div>
+                  <div className="font-bold flex items-center gap-1">
+                    {isLast ? (
+                      <span className="text-[#00B69B] px-1.5 py-0.5 bg-[#00B69B]/10 rounded font-sans text-[10px]">Result is: {step.a}</span>
+                    ) : (
+                      <span>Remainder: {step.a} % {step.b} = <span className="text-[#FF3E3E]">{step.rem}</span></span>
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </div>
+
+      <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
+        <strong className="text-rose-455">Logger:</strong> {statusText}
       </p>
     </div>
   );

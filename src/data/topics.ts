@@ -577,5 +577,140 @@ export const dsaTopics: Topic[] = [
         }
       }
     ]
+  },
+  {
+    id: 'greedy',
+    name: 'Greedy Algorithms',
+    difficulty: 'Medium',
+    studyTime: '4-5 Hours',
+    prerequisites: ['arrays'],
+    overview: 'Greedy algorithms construct solutions by making locally optimal choices at each step, with the expectation of finding a global optimum. They never backtrack.',
+    theory: {
+      coreConcepts: [
+        'Greedy Choice Property: A global optimal solution can be reached by making local, immediate optimal choices.',
+        'No Backtracking: Once a greedy choice is made, it is permanent and is never reversed.',
+        'Common applications: Interval scheduling (sort by end times), Huffman coding, and Minimum Spanning Trees (Kruskal & Prim).'
+      ],
+      visualExplanation: 'Local Choice A -> Local Choice B -> Local Choice C (Builds Global Path)',
+      timeComplexity: {
+        'Activity Sorting (Typical)': 'O(N log N)',
+        'Decision Traversal Step': 'O(N)',
+        'Extremities Updates': 'O(1)'
+      },
+      spaceComplexity: {
+        'In-place Sort Arrays': 'O(1) auxiliary',
+        'Huffman Node Allocations': 'O(N)'
+      }
+    },
+    cheatSheet: {
+      title: 'Greedy Strategy Study Card',
+      points: [
+        'Always try grouping and ordering inputs to see if a sorting criterion (e.g. earliest end time, lowest weights ratio) satisfies global correctness.',
+        'Beware: Greedy algorithms do not always work! For example, Euro coin systems resolve optimally using greedy choice, but {1, 3, 4} change for 6 fails.',
+        'Proof techniques: Rely on "Greedy stays ahead" or "Exchange arguments" to mathematically justify why greedy choice preserves optimality.'
+      ]
+    },
+    patterns: [
+      {
+        name: 'Interval Scheduling',
+        description: 'Sort activities by their ending times. Keep a track pointer of the last chosen event expiration, greedily selecting next ones starting after that end.',
+        templates: {
+          java: `import java.util.*;\npublic class IntervalScheduling {\n    public int maxActivities(int[][] intervals) {\n        Arrays.sort(intervals, Comparator.comparingInt(a -> a[1]));\n        int count = 0, lastEnd = -1;\n        for (int[] interval : intervals) {\n            if (interval[0] >= lastEnd) {\n                count++;\n                lastEnd = interval[1];\n            }\n        }\n        return count;\n    }\n}`,
+          kotlin: `import java.util.Arrays\nfun maxActivities(intervals: Array<IntArray>): Int {\n    intervals.sortBy { it[1] }\n    var count = 0\n    var lastEnd = -1\n    for (interval in intervals) {\n        if (interval[0] >= lastEnd) {\n            count++\n            lastEnd = interval[1]\n        }\n    }\n    return count\n}`,
+          python: `def max_activities(intervals):\n    intervals.sort(key=lambda x: x[1])\n    count = 0\n    last_end = -1\n    for start, end in intervals:\n        if start >= last_end:\n            count += 1\n            last_end = end\n    return count`,
+          cpp: `#include <vector>\n#include <algorithm>\nint maxActivities(std::vector<std::pair<int, int>>& intervals) {\n    std::sort(intervals.begin(), intervals.end(), [](const auto& a, const auto& b) {\n        return a.second < b.second;\n    });\n    int count = 0, lastEnd = -1;\n    for (const auto& interval : intervals) {\n        if (interval.first >= lastEnd) {\n            count++;\n            lastEnd = interval.second;\n        }\n    }\n    return count;\n}`
+        }
+      }
+    ]
+  },
+  {
+    id: 'bit-manipulation',
+    name: 'Bit Manipulation',
+    difficulty: 'Medium',
+    studyTime: '3-4 Hours',
+    prerequisites: ['arrays'],
+    overview: 'Operations at the binary word level. Integers are represented under Two\'s complement, and bit operators act directly in O(1) clock cycles to save memory masks.',
+    theory: {
+      coreConcepts: [
+        'Operations: AND (&), OR (|), XOR (^), NOT (~), and bit shifts (<<, >>).',
+        'XOR identities: x ^ x = 0, and x ^ 0 = x. Unique for tracking isolated duplicates.',
+        'Lowest Set Bit: The logic expression x & (x - 1) clears the rightmost active 1 bit, checking powers of 2.'
+      ],
+      visualExplanation: 'Decimal 43 = 00101011 (Binary) -> Shift left 1 (43 << 1) = 01010110 (86)',
+      timeComplexity: {
+        'Bitwise AND / OR / XOR': 'O(1)',
+        'Bit shifts (<< / >>)': 'O(1)',
+        'Built-in popcount / clz': 'O(1)'
+      },
+      spaceComplexity: {
+        'Auxiliary Integer Masks': 'O(1)',
+        'State subsets storage': 'O(1) under compact bitmasks'
+      }
+    },
+    cheatSheet: {
+      title: 'Bit Manipulation Cheat Card',
+      points: [
+        'Verify power of two: (x > 0) && ((x & (x - 1)) == 0). It ensures exactly one bit is set.',
+        'Accessing k-th bit: (x & (1 << k)) != 0. To set, use x | (1 << k). To clear, use x & ~(1 << k).',
+        'A single integer bitmask can represent elements membership in subsets up to size 31/63 securely.'
+      ]
+    },
+    patterns: [
+      {
+        name: 'Single Number Finder',
+        description: 'Using XOR properties to spot non-duplicated single numbers over double arrays seamlessly in linear time with zero space.',
+        templates: {
+          java: `public class SingleNumber {\n    public int findSingle(int[] nums) {\n        int res = 0;\n        for (int x : nums) res ^= x;\n        return res;\n    }\n}`,
+          kotlin: `fun findSingle(nums: IntArray): Int {\n    var res = 0\n    for (x in nums) res = res xor x\n    return res\n}`,
+          python: `def find_single(nums):\n    res = 0\n    for x in nums:\n        res ^= x\n    return res`,
+          cpp: `#include <vector>\nint findSingle(const std::vector<int>& nums) {\n    int res = 0;\n    for (int x : nums) res ^= x;\n    return res;\n}`
+        }
+      }
+    ]
+  },
+  {
+    id: 'number-theory',
+    name: 'Number Theory',
+    difficulty: 'Medium',
+    studyTime: '4-5 Hours',
+    prerequisites: ['arrays'],
+    overview: 'Studies properties and algorithms of integers, specializing in prime factorization, modular arithmetic, greatest common divisors, and Fermat\'s Little Theorem.',
+    theory: {
+      coreConcepts: [
+        'Primality Testing: Check non-primes up to sqrt(N) only, or compute primes up to N via Sieve of Eratosthenes.',
+        'Euclid\'s GCD: Recursive modular algorithm resolving standard greatest common divisors in logarithmic O(log N).',
+        'Modular Multiplicative Inverse: Calculate inverse ratios a / b mod m cleanly using base powers modpow matching Fermat\'s Little Theorem: b^(m-2) mod m.'
+      ],
+      visualExplanation: 'GCD(24, 30) = GCD(30, 24) = GCD(24, 6) = GCD(6, 0) => 6',
+      timeComplexity: {
+        'GCD / LCM queries': 'O(log(min(A, B)))',
+        'Modular Power / Inverse': 'O(log N)',
+        'Sieve precomputation': 'O(N log log N)'
+      },
+      spaceComplexity: {
+        'GCD Stack Frames': 'O(log N)',
+        'Sieve prime lookup array': 'O(N)'
+      }
+    },
+    cheatSheet: {
+      title: 'Integer Arithmetic Quick Hacks',
+      points: [
+        'Keep calculations safe from modulo overflows: (a * b) % m = ((a % m) * (b % m)) % m.',
+        'To find least common multiples cleanly, multiply and divide by GCD: lcm(a, b) = (a / gcd(a, b)) * b.',
+        'Division is NOT allowed directly inside modulo spaces! Convert division modulo m to multiplication by modular inverse.'
+      ]
+    },
+    patterns: [
+      {
+        name: 'Modular Exponentiation',
+        description: 'Binary Exponentiation performing logarithmic modulo powering to prevent common numeric variable limits overflow.',
+        templates: {
+          java: `public class ModPow {\n    public long power(long base, long exp, long mod) {\n        long res = 1;\n        base %= mod;\n        while (exp > 0) {\n            if (exp % 2 == 1) res = (res * base) % mod;\n            base = (base * base) % mod;\n            exp /= 2;\n        }\n        return res;\n    }\n}`,
+          kotlin: `fun power(baseVal: Long, expVal: Long, mod: Long): Long {\n    var res = 1L\n    var base = baseVal % mod\n    var exp = expVal\n    while (exp > 0) {\n        if (exp % 2 == 1L) res = (res * base) % mod\n        base = (base * base) % mod\n        exp /= 2\n    }\n    return res\n}`,
+          python: `def power(base, exp, mod):\n    res = 1\n    base %= mod\n    while exp > 0:\n        if exp % 2 == 1:\n            res = (res * base) % mod\n        base = (base * base) % mod\n        exp //= 2\n    return res`,
+          cpp: `long long power(long long base, long long exp, long long mod) {\n    long long res = 1;\n    base %= mod;\n    while (exp > 0) {\n        if (exp % 2 == 1) res = (res * base) % mod;\n        base = (base * base) % mod;\n        exp /= 2;\n    }\n    return res;\n}`
+        }
+      }
+    ]
   }
 ];
