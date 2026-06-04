@@ -16,6 +16,10 @@ export async function fetchUserProgress(uid: string): Promise<UserProgress | nul
         lastActiveDate: data.lastActiveDate || new Date().toISOString(),
         weakAreas: data.weakAreas || [],
         revisionStatus: data.revisionStatus || {},
+        solvedProblemDates: data.solvedProblemDates || {},
+        leetcodeUsername: data.leetcodeUsername || '',
+        leetcodeSolvedProblems: data.leetcodeSolvedProblems || {},
+        maxAgeDays: data.maxAgeDays !== undefined ? data.maxAgeDays : undefined,
       };
     }
     return null;
@@ -36,6 +40,10 @@ export async function saveUserProgress(uid: string, email: string, progress: Use
     lastActiveDate: progress.lastActiveDate,
     weakAreas: progress.weakAreas,
     revisionStatus: progress.revisionStatus,
+    solvedProblemDates: progress.solvedProblemDates || {},
+    leetcodeUsername: progress.leetcodeUsername || '',
+    leetcodeSolvedProblems: progress.leetcodeSolvedProblems || {},
+    maxAgeDays: progress.maxAgeDays !== undefined ? progress.maxAgeDays : null,
   };
   try {
     await setDoc(docRef, payload);

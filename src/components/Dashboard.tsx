@@ -1,18 +1,55 @@
+import { useState } from 'react';
 import { Topic, Problem, UserProgress } from '../types';
 import { dsaTopics } from '../data/topics';
 import { getAllProblems } from '../data/problems';
 import { dsaRoadmap } from '../data/roadmap';
-import { Award, Zap, CheckCircle2, Flame, Calendar, Trophy, BookOpen, ChevronRight, Activity, Check, Cloud, LogIn } from 'lucide-react';
+import { Award, Zap, CheckCircle2, Flame, Calendar, Trophy, BookOpen, ChevronRight, Activity, Check, Cloud, LogIn, Clock, Database, RefreshCw, Code2 } from 'lucide-react';
 import { User } from 'firebase/auth';
 
 interface DashboardProps {
   progress: UserProgress;
+  rawProgress: UserProgress;
   onNavigate: (view: string, topicId?: string) => void;
   user: User | null;
   onSignIn: () => void;
+  onUpdateMaxAgeDays: (days: number | undefined) => void;
+  onSyncLeetcode: (username: string) => Promise<{ success: boolean; count?: number; message?: string }>;
 }
 
-export default function Dashboard({ progress, onNavigate, user, onSignIn }: DashboardProps) {
+export default function Dashboard({ 
+  progress, 
+  rawProgress, 
+  onNavigate, 
+  user, 
+  onSignIn,
+  onUpdateMaxAgeDays,
+  onSyncLeetcode
+}: DashboardProps) {
+  const [lcUsername, setLcUsername] = useState<string>(rawProgress.leetcodeUsername || '');
+  const [syncLoading, setSyncLoading] = useState<boolean>(false);
+  const [syncStatus, setSyncStatus] = useState<{ type: 'success' | 'error' | ''; message: string }>({ type: '', message: '' });
+
+  const handleSyncClick = async () => {
+    if (!lcUsername.trim()) {
+      setSyncStatus({ type: 'error', message: 'LeetCode username is required.' });
+      return;
+    }
+    setSyncLoading(true);
+    setSyncStatus({ type: '', message: '' });
+    try {
+      const result = await onSyncLeetcode(lcUsername);
+      if (result.success) {
+        setSyncStatus({ type: 'success', message: result.message || 'LeetCode account synchronized successfully!' });
+      } else {
+        setSyncStatus({ type: 'error', message: result.message || 'Verification failed. Make sure handle is correct.' });
+      }
+    } catch (err: any) {
+      setSyncStatus({ type: 'error', message: 'Endpoint unreachable or rate-limited. Trying again later.' });
+    } finally {
+      setSyncLoading(false);
+    }
+  };
+
   const totalTopics = dsaTopics.length;
   const completedTopicsCount = progress.completedTopics.length;
   const totalProblemsCount = 390; // 13 topics * 30 problems
@@ -157,6 +194,135 @@ export default function Dashboard({ progress, onNavigate, user, onSignIn }: Dash
           </div>
           <div className="p-3 bg-[#FF3E3E]/12 text-[#FF3E3E] rounded-2xl">
             <Flame className="w-6 h-6" />
+          </div>
+        </div>
+      </div>
+
+      {/* SDE Integration Panel: LeetCode Verification & Retention Filter */}
+      <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-6 shadow-[0_4px_22px_rgba(0,0,0,0.02)] transition-all duration-155 space-y-6">
+        <div className="flex items-center gap-2 pb-4 border-b border-slate-100 dark:border-slate-800">
+          <Database className="w-5 h-5 text-[#4880FF]" />
+          <div>
+            <h3 className="text-sm font-sans font-black tracking-tight text-slate-800 dark:text-white uppercase">
+              SDE Practice Integrations
+            </h3>
+            <p className="text-[11px] text-slate-400 dark:text-slate-500">
+              Cross-reference verified coding records and configure active learning retention metrics.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-1">
+          {/* Box A: Previous Days Retention Window Filter */}
+          <div className="space-y-3 md:border-r md:border-slate-105/10 md:dark:border-slate-800 md:pr-6">
+            <div className="flex items-center gap-2">
+              <Clock className="w-4 h-4 text-[#00B69B]" />
+              <h4 className="text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                Practice Retention Filter
+              </h4>
+            </div>
+            
+            <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-450">
+              Set how far back previous solved questions are counted as "done". Questions completed further back than this window show as "not done" to encourage fresh repetition and active recall loops.
+            </p>
+
+            <div className="space-y-2 pt-2">
+              <label className="text-[10px] font-mono font-bold text-slate-400 uppercase tracking-widest block">
+                DAYS RETAINED
+              </label>
+              <div className="flex items-center gap-3">
+                <select
+                  value={rawProgress.maxAgeDays !== undefined ? rawProgress.maxAgeDays : 0}
+                  onChange={(e) => {
+                    const val = parseInt(e.target.value, 10);
+                    onUpdateMaxAgeDays(val === 0 ? undefined : val);
+                  }}
+                  className="bg-slate-50 dark:bg-[#1B1E2D] border border-slate-100 dark:border-[#2C3148] text-slate-700 dark:text-slate-300 text-xs px-4 py-2.5 rounded-xl outline-none font-bold w-full max-w-[200px] cursor-pointer"
+                >
+                  <option value={0}>∞ All time (No filter)</option>
+                  <option value={30}>30 Days Limit</option>
+                  <option value={60}>60 Days Limit</option>
+                  <option value={90}>90 Days Limit</option>
+                  <option value={180}>180 Days Limit</option>
+                  <option value={365}>365 Days Limit</option>
+                </select>
+
+                <div className="text-[11px] font-mono select-none">
+                  {rawProgress.maxAgeDays ? (
+                    <span className="text-[#FF3E3E] bg-[#FF3E3E]/10 font-black px-2.5 py-1 rounded-xl">
+                      {rawProgress.maxAgeDays}d Limit Active
+                    </span>
+                  ) : (
+                    <span className="text-[#00B69B] bg-[#00B69B]/10 font-black px-2.5 py-1 rounded-xl">
+                      All Time Active
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Box B: LeetCode Verification Setup */}
+          <div className="space-y-3">
+            <div className="flex items-center gap-2">
+              <Code2 className="w-4 h-4 text-[#FFA800]" />
+              <h4 className="text-xs font-extrabold text-slate-700 dark:text-slate-200 uppercase tracking-wider">
+                LeetCode Profile Verification
+              </h4>
+            </div>
+
+            <p className="text-[11px] leading-relaxed text-slate-500 dark:text-slate-450">
+              Sync your active coding handle. We'll crawl your raw accepted submissions from LeetCode to automatically verify and tag completed interview list questions.
+            </p>
+
+            <div className="space-y-2 pt-1">
+              {rawProgress.leetcodeUsername && (
+                <div className="flex items-center justify-between text-xs font-sans font-bold bg-[#FFA800]/10 border border-[#FFA800]/15 text-[#FFA800] p-2.5 px-3 rounded-xl mb-2">
+                  <span className="flex items-center gap-1.5 flex-wrap">
+                    <Check className="w-3.5 h-3.5 mt-0.5 animate-bounce shrink-0" /> Verified Handle: <strong className="font-mono text-slate-800 dark:text-slate-100">@{rawProgress.leetcodeUsername}</strong>
+                  </span>
+                  <span className="text-[10px] text-slate-450 uppercase font-mono mt-0.5 sm:mt-0">
+                    Synced {Object.keys(rawProgress.leetcodeSolvedProblems || {}).length} recent problems
+                  </span>
+                </div>
+              )}
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="text"
+                  value={lcUsername}
+                  onChange={(e) => setLcUsername(e.target.value)}
+                  placeholder="LeetCode Username"
+                  className="bg-slate-50 dark:bg-[#1B1E2D] border border-slate-100 dark:border-[#2C3148] text-slate-750 dark:text-white text-xs px-3.5 py-2.5 rounded-xl outline-none font-bold placeholder-slate-400/80 w-full"
+                />
+
+                <button
+                  onClick={handleSyncClick}
+                  disabled={syncLoading}
+                  className="px-4 py-2.5 bg-[#4880FF] hover:bg-[#3570F0] text-white text-xs font-bold rounded-xl shadow-sm transition hover:shadow flex items-center justify-center gap-1.5 shrink-0 select-none cursor-pointer disabled:opacity-50"
+                >
+                  {syncLoading ? (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5 animate-spin" />
+                      <span>Syncing</span>
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="w-3.5 h-3.5" />
+                      <span>Sync</span>
+                    </>
+                  )}
+                </button>
+              </div>
+
+              {syncStatus.type && (
+                <div className={`text-[11px] p-2 px-3 rounded-xl font-medium mt-2 leading-normal ${
+                  syncStatus.type === 'success' ? 'bg-[#00B69B]/10 text-[#00B69B]' : 'bg-red-500/10 text-red-500'
+                }`}>
+                  {syncStatus.message}
+                </div>
+              )}
+            </div>
           </div>
         </div>
       </div>

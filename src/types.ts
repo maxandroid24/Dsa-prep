@@ -63,6 +63,10 @@ export interface UserProgress {
   lastActiveDate: string; // ISO string
   weakAreas: string[]; // Topic IDs flagged as weak
   revisionStatus: { [topicId: string]: 'unrevised' | 'revised' | 'mastered' };
+  solvedProblemDates?: { [problemId: string]: string }; // problemId -> completion ISO Date string
+  leetcodeUsername?: string;
+  leetcodeSolvedProblems?: { [titleSlug: string]: string }; // titleSlug -> completion ISO string or timestamp
+  maxAgeDays?: number; // Previous days limit to consider done (e.g. 90, 180, etc.), undefined/all-time if unset
 }
 
 export interface SDEPlanDay {

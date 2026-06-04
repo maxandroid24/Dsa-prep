@@ -69,7 +69,11 @@ export default function App() {
     revisionStreak: 3, // prefill a high streak to inspire
     lastActiveDate: new Date().toISOString(),
     weakAreas: ['graphs'],
-    revisionStatus: { 'arrays': 'revised' }
+    revisionStatus: { 'arrays': 'revised' },
+    solvedProblemDates: { 'arr-1': new Date().toISOString() },
+    leetcodeUsername: '',
+    leetcodeSolvedProblems: {},
+    maxAgeDays: undefined
   });
 
   // Restore states and hook up onAuthStateChanged
@@ -144,7 +148,17 @@ export default function App() {
                 ? cloudProgress.lastActiveDate
                 : prevLocal.lastActiveDate,
               weakAreas: mergedWeak,
-              revisionStatus: mergedStatus
+              revisionStatus: mergedStatus,
+              solvedProblemDates: {
+                ...(cloudProgress.solvedProblemDates || {}),
+                ...(prevLocal.solvedProblemDates || {})
+              },
+              leetcodeUsername: cloudProgress.leetcodeUsername || prevLocal.leetcodeUsername || '',
+              leetcodeSolvedProblems: {
+                ...(cloudProgress.leetcodeSolvedProblems || {}),
+                ...(prevLocal.leetcodeSolvedProblems || {})
+              },
+              maxAgeDays: cloudProgress.maxAgeDays !== undefined ? cloudProgress.maxAgeDays : prevLocal.maxAgeDays
             };
 
             // Save the merged results back to both Firestore and localStorage synchronously
@@ -178,6 +192,127 @@ export default function App() {
     }
   };
 
+  const getLeetcodeSlug = (url: string | undefined): string | null => {
+    if (!url) return null;
+    const match = url.match(/leetcode\.com\/problems\/([^/]+)/);
+    return match ? match[1].toLowerCase() : null;
+  };
+
+  const getFilteredProgress = (prog: UserProgress): UserProgress => {
+    const ageLimit = prog.maxAgeDays;
+    const allProblems = getAllProblems();
+
+    // 1. Compile all solved problem IDs (including LeetCode synced questions if age limit is not active)
+    if (ageLimit === undefined || ageLimit === 0) {
+      const leetcodeSolvedSlugs = Object.keys(prog.leetcodeSolvedProblems || {});
+      const leetcodeSolvedIds = leetcodeSolvedSlugs.map(slug => {
+        const found = allProblems.find(p => getLeetcodeSlug(p.leetcodeUrl) === slug);
+        return found ? found.id : null;
+      }).filter((id): id is string => id !== null);
+
+      const mergedSolved = Array.from(new Set([
+        ...prog.solvedProblems,
+        ...leetcodeSolvedIds
+      ]));
+
+      return {
+        ...prog,
+        solvedProblems: mergedSolved
+      };
+    }
+
+    // 2. Age limit IS active! Let's calculate the cutoff date
+    const cutoffTime = Date.now() - ageLimit * 24 * 60 * 60 * 1000;
+
+    // Filter local completions by date
+    const activeLocalSolved = prog.solvedProblems.filter(id => {
+      const dateStr = prog.solvedProblemDates?.[id];
+      if (!dateStr) return true; // Keep legacy/non-dated entries or treat as active
+      return new Date(dateStr).getTime() >= cutoffTime;
+    });
+
+    // Filter LeetCode completions by date
+    const activeLeetcodeSolvedSlugs = Object.entries(prog.leetcodeSolvedProblems || {})
+      .filter(([_, solvedDate]) => {
+        return new Date(solvedDate).getTime() >= cutoffTime;
+      })
+      .map(([slug]) => slug);
+
+    // Map LeetCode slugs to local IDs
+    const activeLeetcodeSolvedIds = activeLeetcodeSolvedSlugs.map(slug => {
+      const found = allProblems.find(p => getLeetcodeSlug(p.leetcodeUrl) === slug);
+      return found ? found.id : null;
+    }).filter((id): id is string => id !== null);
+
+    const activeSolved = Array.from(new Set([...activeLocalSolved, ...activeLeetcodeSolvedIds]));
+
+    return {
+      ...prog,
+      solvedProblems: activeSolved
+    };
+  };
+
+  const handleUpdateMaxAgeDays = (days: number | undefined) => {
+    const updated = { ...progress, maxAgeDays: days };
+    saveProgress(updated);
+  };
+
+  const handleSyncLeetcode = async (username: string): Promise<{ success: boolean; count?: number; message?: string }> => {
+    if (!username.trim()) {
+      return { success: false, message: 'Please enter a valid LeetCode username.' };
+    }
+    
+    try {
+      const res = await fetch('/api/leetcode', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ username: username.trim() }),
+      });
+      
+      const responseData = await res.json();
+      
+      if (responseData.status === 'success' && responseData.data?.recentAcSubmissionList) {
+        const submissions = responseData.data.recentAcSubmissionList;
+        
+        const updatedLeetcodeSolved = { ...(progress.leetcodeSolvedProblems || {}) };
+        
+        submissions.forEach((sub: any) => {
+          const slug = sub.titleSlug.toLowerCase();
+          const timestampSecs = parseInt(sub.timestamp, 10);
+          const dateISO = new Date(timestampSecs * 1000).toISOString();
+          
+          if (!updatedLeetcodeSolved[slug] || new Date(dateISO) > new Date(updatedLeetcodeSolved[slug])) {
+            updatedLeetcodeSolved[slug] = dateISO;
+          }
+        });
+        
+        const updated = {
+          ...progress,
+          leetcodeUsername: username.trim(),
+          leetcodeSolvedProblems: updatedLeetcodeSolved,
+        };
+        saveProgress(updated);
+        
+        return { 
+          success: true, 
+          count: submissions.length, 
+          message: `Successfully synced ${submissions.length} recent accepted questions from LeetCode account ${username}!` 
+        };
+      } else {
+        const errMsg = responseData.message || (responseData.errors && responseData.errors[0]?.message) || 'User profile not found or has no recent submissions.';
+        return { success: false, message: errMsg };
+      }
+    } catch (err: any) {
+      console.error('LeetCode sync error:', err);
+      return { 
+        success: false, 
+        message: 'Unable to communicate with verification endpoint. Please verify server is online.' 
+      };
+    }
+  };
+
   const handleToggleTopicComplete = (topicId: string) => {
     const wasCompleted = progress.completedTopics.includes(topicId);
     let next: string[];
@@ -194,12 +329,21 @@ export default function App() {
   const handleToggleProblemSolved = (problemId: string) => {
     const wasSolved = progress.solvedProblems.includes(problemId);
     let next: string[];
+    const nowStr = new Date().toISOString();
+    const updatedDates = { ...(progress.solvedProblemDates || {}) };
+    
     if (wasSolved) {
       next = progress.solvedProblems.filter(id => id !== problemId);
+      delete updatedDates[problemId];
     } else {
       next = [...progress.solvedProblems, problemId];
+      updatedDates[problemId] = nowStr;
     }
-    const updated = { ...progress, solvedProblems: next };
+    const updated = { 
+      ...progress, 
+      solvedProblems: next,
+      solvedProblemDates: updatedDates 
+    };
     saveProgress(updated);
   };
 
@@ -743,16 +887,19 @@ export default function App() {
         <main className="flex-1 py-6 px-4 md:px-8 max-w-full overflow-x-hidden min-h-[calc(100vh-4rem)]">
           {activeView === 'dashboard' && (
             <Dashboard 
-              progress={progress} 
+              progress={getFilteredProgress(progress)} 
+              rawProgress={progress}
               onNavigate={handleNavigate}
               user={user}
               onSignIn={signInWithGoogle}
+              onUpdateMaxAgeDays={handleUpdateMaxAgeDays}
+              onSyncLeetcode={handleSyncLeetcode}
             />
           )}
 
           {activeView === 'roadmap' && (
             <Roadmap 
-              progress={progress} 
+              progress={getFilteredProgress(progress)} 
               onNavigate={handleNavigate}
             />
           )}
@@ -760,7 +907,7 @@ export default function App() {
           {activeView === 'topics' && (
             <TopicsView 
               activeTopicId={activeTopicId}
-              progress={progress}
+              progress={getFilteredProgress(progress)}
               onToggleTopicComplete={handleToggleTopicComplete}
               onToggleProblemSolved={handleToggleProblemSolved}
               onNavigateToTopic={(id) => handleNavigate('topics', id)}
@@ -771,7 +918,7 @@ export default function App() {
 
           {activeView === 'practice' && (
             <PracticeProblems 
-              progress={progress}
+              progress={getFilteredProgress(progress)}
               onToggleProblemSolved={handleToggleProblemSolved}
               onNavigateToTopic={(id) => handleNavigate('topics', id)}
             />
