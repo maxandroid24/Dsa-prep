@@ -12,28 +12,33 @@ export const dsaTopics: Topic[] = [
       coreConcepts: [
         'Contiguous memory allocation allowing O(1) random index access.',
         'Immutability: In Java/Python, Strings are immutable, creating a new string on concatenation.',
-        'Resizing: Dynamic arrays (ArrayList, vector, list) double in size when full, bringing amortized O(1) appends.'
+        'Resizing: Dynamic arrays (ArrayList, vector, list) double in size when full, bringing amortized O(1) appends.',
+        'Bubble Sort (Inversions): Swaps adjacent out-of-order elements in O(n^2). The number of swaps equals the number of inversions: pairs (i, j) where i < j and A[i] > A[j].',
+        'Merge Sort (Divide & Conquer): Recursively halves indices, sorts subsets, and merges them back in O(n log n). Excellent for counting global array inversions in O(n log n).',
+        'Counting Sort (Distributional Sort): Solves sorting in optimized linear O(n + g) time when elements are positive integers bounded by a small limit g.'
       ],
-      visualExplanation: '[Element 0] -> [Element 1] -> [Element 2] -> [Element 3] (Contiguous Memory Locations)',
+      visualExplanation: '[Element 0] -> [Element 1] -> [Element 2] -> [Element 3] (Contiguous Memory Locations with dynamic double capacity limits)',
       timeComplexity: {
         'Access (Index)': 'O(1)',
-        'Search (Unsorted)': 'O(N)',
-        'Search (Sorted)': 'O(log N)',
+        'Unsorted Search': 'O(N)',
+        'Sorted Binary Search': 'O(log N)',
         'Insertion / Deletion (At End)': 'O(1) amortized',
-        'Insertion / Deletion (At Start/Middle)': 'O(N)'
+        'Insertion / Deletion (Start/Middle)': 'O(N)',
+        'Merge Sort / C++ std::sort': 'O(N log N)'
       },
       spaceComplexity: {
-        'Static Array Allocation': 'O(N)',
-        'In-place Operations': 'O(1)'
+        'Static Allocation': 'O(N)',
+        'In-place Bubble Sort': 'O(1) auxiliary',
+        'Merge Sort Aux Buffers': 'O(N)'
       }
     },
     cheatSheet: {
-      title: 'Array & String Interview Checklist',
+      title: 'Array & Sorting Checklist',
       points: [
-        'Check for index out-of-bounds errors before incrementing/decrementing.',
-        'Use strings.toCharArray() in Java or list(string) in Python to bypass string immutability performance hits.',
-        'When dealing with dynamic arrays, keep in mind memory doubling capacity penalties (amortized insertion cost).',
-        'Keep variables track for current, prefix sum, suffix, or sliding window positions.'
+        'Validate empty domains, index bounds, and memory duplication penalties when appending to collections.',
+        'Use native string conversion tools (e.g. StringBuilder in Java or lists in Python) instead of simple concatenation loops (+).',
+        'Sorting is often a powerful preprocessing step! Sort elements first to unlock O(n) two-pointer scans or O(log n) binary divisions.',
+        'Counting Sort is a cheat code: use it when array values fall within a tight numerical bound.'
       ]
     },
     patterns: [
@@ -54,7 +59,7 @@ export const dsaTopics: Topic[] = [
           java: `public class Kadane {\n    public int maxSubArraySum(int[] arr) {\n        int maxSoFar = arr[0], currentMax = arr[0];\n        for (int i = 1; i < arr.length; i++) {\n            currentMax = Math.max(arr[i], currentMax + arr[i]);\n            maxSoFar = Math.max(maxSoFar, currentMax);\n        }\n        return maxSoFar;\n    }\n}`,
           kotlin: `fun maxSubArraySum(arr: IntArray): Int {\n    var maxSoFar = arr[0]\n    var currentMax = arr[0]\n    for (i in 1 until arr.size) {\n        currentMax = maxOf(arr[i], currentMax + arr[i])\n        maxSoFar = maxOf(maxSoFar, currentMax)\n    }\n    return maxSoFar\n}`,
           python: `def max_sub_array_sum(arr):\n    max_so_far = current_max = arr[0]\n    for i in range(1, len(arr)):\n        current_max = max(arr[i], current_max + arr[i])\n        max_so_far = max(max_so_far, current_max)\n    return max_so_far`,
-          cpp: `int maxSubArraySum(const std::vector<int>& arr) {\n    int maxSoFar = arr[0], currentMax = arr[0];\n    for (size_t i = 1; i < arr.size(); ++i) {\n        currentMax = std::max(arr[i], currentMax + arr[i]);\n        maxSoFar = std::max(maxSoFar, currentMax);\n    }\n    return maxSoFar;\n}`
+          cpp: `int maxSubArraySum(const std::vector<int>& arr) {\n    int maxSoFar = arr[0], currentMax = arr[0];\n    for (size_t i = 1; i < arr.size(); ++i) {\n        currentMax = std::max(arr[i], currentMax + arr[i]);\n        maxSoFar = std::max(maxSoFar, currentMax);\n    }\n    return maxSubArraySum;\n}`
         }
       }
     ]
@@ -196,25 +201,28 @@ export const dsaTopics: Topic[] = [
     theory: {
       coreConcepts: [
         'Pre-requisite: Container elements must be strictly sorted.',
-        'Calculates safe mid index using: `mid = left + (right - left) / 2` to prevent standard integer overflows.',
-        'Standard boundary cases: lower bound (first index value >= target) vs upper bound (first value > target).'
+        'Method 1 (Interval Halving): Continually reduces the active lookup region half-by-half via low/high pointers bounds.',
+        'Method 2 (Power-of-Two Jumps): Start with an initial jump length of n/2 and half it recursively (n/4, n/8, etc.) to jump through the array from left to right as long as indices remain valid and values are <= target.',
+        'Finding Smallest Solutions: Search for the transition index k where a monotonic helper function ok(x) changes from false to true.',
+        'Finding Maximum Values (Bitonic Peaks): Locate the peak element in a function that is first strictly increasing and then strictly decreasing using binary comparative slopes.'
       ],
-      visualExplanation: 'Sorted: [1, 3, 5, 7, 9] -> check middle (5) -> target smaller? check left half.',
+      visualExplanation: 'Method 2 Jumps: 32 -> 16 -> 8 -> 4 -> 2 -> 1 (Logarithmic decaying jumps matching bit configurations)',
       timeComplexity: {
-        'Search Queries': 'O(log N)',
+        'Standard / Jump Search': 'O(log N)',
+        'ok(x) Bound Decision Search': 'O(log N * cost of ok(x))',
         'Pre-sorting cost': 'O(N log N)'
       },
       spaceComplexity: {
-        'Iterative Space': 'O(1)',
-        'Recursive Call Stack': 'O(log N)'
+        'Iterative Jumps / Search': 'O(1)',
+        'Recursive Slices Stack': 'O(log N)'
       }
     },
     cheatSheet: {
-      title: 'Binary Search Must-knows',
+      title: 'Monotonic Binary Search Cheat Card',
       points: [
-        'Watch for integer summation overflows: Avoid (low + high) / 2 in Java/C++.',
-        'Validate empty search domains, single elements bounds, and out-of-range keys.',
-        'Search on Answer pattern: Use binary search when searching for constraints with monotonic properties.'
+        'To calculate mid-points safely, use: mid = low + (high - low) / 2 to avoid addition numeric overflows.',
+        'For finding the lower bound (first element >= x) in C++, prefer std::lower_bound or equal_range.',
+        'When dealing with floating point domains, iterate a fixed number of times (e.g. 100 loops) instead of checking epsilons for maximum absolute precision.'
       ]
     },
     patterns: [
@@ -225,7 +233,7 @@ export const dsaTopics: Topic[] = [
           java: `public class BinarySearch {\n    public int findIndex(int[] arr, int target) {\n        int low = 0, high = arr.length - 1;\n        while (low <= high) {\n            int mid = low + (high - low) / 2;\n            if (arr[mid] == target) return mid;\n            if (arr[mid] < target) low = mid + 1;\n            else high = mid - 1;\n        }\n        return -1;\n    }\n}`,
           kotlin: `fun findIndex(arr: IntArray, target: Int): Int {\n    var low = 0\n    var high = arr.size - 1\n    while (low <= high) {\n        val mid = low + (high - low) / 2\n        if (arr[mid] == target) return mid\n        if (arr[mid] < target) low = mid + 1\n        else high = mid - 1\n    }\n    return -1\n}`,
           python: `def find_index(arr, target):\n    low, high = 0, len(arr) - 1\n    while low <= high:\n        mid = low + (high - low) // 2\n        if arr[mid] == target:\n            return mid\n        elif arr[mid] < target:\n            low = mid + 1\n        else:\n            high = mid - 1\n    return -1`,
-          cpp: `int findIndex(const std::vector<int>& arr, int target) {\n    int low = 0, high = arr.size() - 1;\n    while (low <= high) {\n        int mid = low + (high - low) / 2;\n        if (arr[mid] == target) return mid;\n        if (arr[mid] < target) low = mid + 1;\n        else high = mid - 1;\n    }\n    return -1;\n}`
+          cpp: `int findIndex(const std::vector<int>& arr, int target) { // Method 2: Jump Search from CP Handbook\n    int k = 0;\n    int n = arr.size();\n    for (int b = n / 2; b >= 1; b /= 2) {\n        while (k + b < n && arr[k + b] <= target) k += b;\n    }\n    if (arr[k] == target) return k;\n    return -1;\n}`
         }
       }
     ]
@@ -373,24 +381,32 @@ export const dsaTopics: Topic[] = [
       coreConcepts: [
         'Representations: Adjacency List (dynamic vector arrays) vs Adjacency Matrix (static density grid).',
         'BFS: Traverses level-by-level queue style, guaranteed to identify shortest path in unweighted networks.',
-        'Dijkstra\'s algorithm uses heaps to traverse shortest paths on weighted edge systems.'
+        'DFS: Explores maximum tree depths recursively before backtracking, resolving cycles, connected structures, and topological markings.',
+        'Dijkstra\'s algorithm: Solves single-source shortest paths on weighted networks in O(V + E log V). WARNING: Fails on lists containing negative weight edges.',
+        'Bellman-Ford algorithm: Relaxes all edges V-1 times in O(V * E) to calculate paths even with negative edge weights. Can flag negative runtime loops.',
+        'SPFA (Shortest Path Faster Algorithm): Evaluates Bellman-Ford paths dynamically using an explicit active relaxation queue.',
+        'Floyd-Warshall algorithm: Solves all-pairs shortest paths in a tidy, simple triple loop layout taking O(V^3) time.',
+        'Kruskal\'s MST: Identifies the Minimum Spanning Tree of a graph by sorting edges by weight and union-joining them using Union-Find to avoid loops.'
       ],
-      visualExplanation: 'Node A ---> Node B ---> Node C \n  \\                     / \n   +-------------------+',
+      visualExplanation: 'Relaxation: dist[v] = min(dist[v], dist[u] + weight). Shortest distances settle down row-by-row.',
       timeComplexity: {
         'BFS / DFS Traversal': 'O(V + E)',
-        'Dijkstra Weighted Path': 'O((V + E) log V)'
+        'Dijkstra Weighted Path': 'O((V + E) log V)',
+        'Bellman-Ford Paths / SPFA': 'O(V * E)',
+        'Floyd-Warshall All-Pairs': 'O(V^3)'
       },
       spaceComplexity: {
         'Adjacency lists structure': 'O(V + E)',
+        'Floyd Matrix Storage': 'O(V^2)',
         'Visited node indicators': 'O(V)'
       }
     },
     cheatSheet: {
       title: 'Graph Study Reference',
       points: [
-        'Always track "visited" nodes using sets or boolean arrays to avoid infinite loops in cyclic graphs.',
-        'BFS is best for shortest paths. DFS is best for exploring all routing combinations, path finding, or cycle checks.',
-        'In grid-based graphs, use a directions array: `int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}}`.'
+        'Dijkstra\'s algorithm is greedy! Do not use it if edges can have negative weights; implement Bellman-Ford instead to avoid infinite routing traps.',
+        'Use the directions vector trick: `int[][] dirs = {{0,1},{0,-1},{1,0},{-1,0}}` to search cell neighbors on matrix grids without duplicating conditional branches.',
+        'Always check for cycle presence in undirected graphs by validating if a newly encountered node is already visited and is not the direct parent.'
       ]
     },
     patterns: [
@@ -417,35 +433,42 @@ export const dsaTopics: Topic[] = [
       coreConcepts: [
         'Optimal Substructure: The global optimal solution can be constructed from optimal sub-problem solutions.',
         'Overlapping Subproblems: Recursion visits the exact same sub-problem states repeatedly.',
-        'Top-Down Recursion (with Memoization caching) vs Bottom-Up Loops (with Tabulation matrices).'
+        'Coin Problem (Min coins): Formula is solve(x) = min_{c in coins} (solve(x - c) + 1), choosing base cases solve(0)=0 and solve(x<0)=infinity.',
+        'Counting Solutions (Coin Ways): Formula is count(x) = sum_{c in coins} count(x - c), tracking solutions sum modulo prime partitions.',
+        'Paths in a Grid: Maximize gold collected walking from top-left to bottom-right using sum[y][x] = max(sum[y][x-1], sum[y-1][x]) + value[y][x].',
+        'Longest Increasing Subsequence (LIS): Find length of longest ascending subarray sequence in O(N^2) via dynamic subsets or O(N log N) utilizing active binary search bounds.',
+        'Edit Distance (Levenshtein): Compute minimal character insert/delete/substitute costs using DP state coordinates.',
+        'Counting Tilings: Profile DP computing ways to paint an n x m grid with 1x2 and 2x1 tiles using binary bitmasks representation.'
       ],
-      visualExplanation: 'Fibonacci Tree: F(5) visits F(3) and F(4) -> F(3) visits F(2) & F(1) (Cache saves calculations!)',
+      visualExplanation: 'Coin State: sum(10) -> choice {1,3,4} -> branches down to sum(9), sum(7), sum(6). Tabulation replaces recursive states in linear order.',
       timeComplexity: {
-        'Memoized Recursion Iteration': 'O(States Count * State Cost)',
-        'Brute Force (No Cache)': 'O(2^N) or O(3^N)'
+        'Coin Minimization Tabulation': 'O(N * C) where C is the number of coins',
+        'Paths in a Grid DP': 'O(N * M) grid cells',
+        'Longest Increasing Subsequence': 'O(N^2) dynamic or O(N log N) jump arrays',
+        'Brute Force (No Cache)': 'O(2^N) or O(3^N) exponents'
       },
       spaceComplexity: {
-        'Cache Memory Matrix': 'O(States Count)',
-        'Space Optimized Tabulation': 'O(1)'
+        'Cache Memory Matrix': 'O(N * M) or O(N) states space',
+        'Space Optimized Tabulation': 'O(N) row-buffers'
       }
     },
     cheatSheet: {
-      title: 'Dynamic Programming Rules',
+      title: 'Dynamic Programming Recipes',
       points: [
-        'Identify base cases first, e.g., DP[0] or DP[1] states.',
-        'Write out the state transition equation, such as: `DP[i] = DP[i-1] + DP[i-2]`.',
-        'Can you optimize Space? If `DP[i]` only depends on `DP[i-1]` and `DP[i-2]`, you only need two variables instead of a full array.'
+        'Base cases are fundamental: Initialize DP[0] = 0 or 1, and map invalid states to safely bounded values (e.g., Integer.MAX_VALUE - 1) to prevent math overflows.',
+        'If the state transition DP[i] only looks back DP[i - 1], transition arrays can be flattened to a single sliding vector of size O(1) or O(W).',
+        'Solve DP recursively with memoization if states are sparse; choose iteration bottom-up arrays if almost all nodes are visited for cache-friendly lookups.'
       ]
     },
     patterns: [
       {
-        name: 'Knapsack 0/1 Problem',
-        description: 'Decide whether to include or exclude items in a knapsack to maximize value given a weight limit.',
+        name: 'Coin Change Minimization',
+        description: 'Compute the minimum coins required to form a target sum S using a given coin set relative to the Handbook.',
         templates: {
-          java: `public class Knapsack {\n    public int solveKnapsack(int[] wt, int[] val, int W) {\n        int N = val.length;\n        int[] dp = new int[W + 1];\n        for (int i = 0; i < N; i++) {\n            for (int w = W; w >= wt[i]; w--) {\n                dp[w] = Math.max(dp[w], dp[w - wt[i]] + val[i]);\n            }\n        }\n        return dp[W];\n    }\n}`,
-          kotlin: `fun solveKnapsack(wt: IntArray, valArray: IntArray, W: Int): Int {\n    val N = valArray.size\n    val dp = IntArray(W + 1)\n    for (i in 0 until N) {\n        for (w in W downTo wt[i]) {\n            dp[w] = maxOf(dp[w], dp[w - wt[i]] + valArray[i])\n        }\n    }\n    return dp[W]\n}`,
-          python: `def solve_knapsack(wt, val, W):\n    dp = [0] * (W + 1)\n    for i in range(len(val)):\n        for w in range(W, wt[i] - 1, -1):\n            dp[w] = max(dp[w], dp[w - wt[i]] + val[i])\n    return dp[W]`,
-          cpp: `int solveKnapsack(const std::vector<int>& wt, const std::vector<int>& val, int W) {\n    int N = val.size();\n    std::vector<int> dp(W + 1, 0);\n    for (int i = 0; i < N; i++) {\n        for (int w = W; w >= wt[i]; w--) {\n            dp[w] = std::max(dp[w], dp[w - wt[i]] + val[i]);\n        }\n    }\n    return dp[W];\n}`
+          java: `import java.util.Arrays;\npublic class CoinChange {\n    public int minCoins(int[] coins, int sum) {\n        int[] dp = new int[sum + 1];\n        Arrays.fill(dp, 1000000000); // Represent infinity safely\n        dp[0] = 0;\n        for (int i = 1; i <= sum; i++) {\n            for (int c : coins) {\n                if (i - c >= 0) {\n                    dp[i] = Math.min(dp[i], dp[i - c] + 1);\n                }\n            }\n        }\n        return dp[sum] >= 1000000000 ? -1 : dp[sum];\n    }\n}`,
+          kotlin: `fun minCoins(coins: IntArray, sum: Int): Int {\n    val dp = IntArray(sum + 1) { 1000000000 }\n    dp[0] = 0\n    for (i in 1..sum) {\n        for (c in coins) {\n            if (i - c >= 0) {\n                dp[i] = minOf(dp[i], dp[i - c] + 1)\n            }\n        }\n    }\n    return if (dp[sum] >= 1000000000) -1 else dp[sum]\n}`,
+          python: `def min_coins(coins, sum_val):\n    dp = [float('inf')] * (sum_val + 1)\n    dp[0] = 0\n    for i in range(1, sum_val + 1):\n        for c in coins:\n            if i - c >= 0:\n                dp[i] = min(dp[i], dp[i - c] + 1)\n    return -1 if dp[sum_val] == float('inf') else dp[sum_val]`,
+          cpp: `#include <vector>\n#include <algorithm>\nint minCoins(const std::vector<int>& coins, int sum) { // Handbook Chapter 7.1 Coin Problem\n    std::vector<int> dp(sum + 1, 1e9);\n    dp[0] = 0;\n    for (int i = 1; i <= sum; i++) {\n        for (int c : coins) {\n            if (i - c >= 0) {\n                dp[i] = std::min(dp[i], dp[i - c] + 1);\n            }\n        }\n    }\n    return dp[sum] >= 1e9 ? -1 : dp[sum];\n}`
         }
       }
     ]

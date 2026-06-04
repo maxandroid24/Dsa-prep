@@ -92,18 +92,76 @@ export default function App() {
       if (currentUser) {
         console.log('User signed in:', currentUser.email);
         const cloudProgress = await fetchUserProgress(currentUser.uid);
-        if (cloudProgress) {
-          setProgress(cloudProgress);
-          localStorage.setItem('dsa_hub_progress_v2', JSON.stringify(cloudProgress));
-        } else {
-          // If no cloud progress exists yet, back up their current local training session
-          setProgress(prev => {
-            saveUserProgress(currentUser.uid, currentUser.email || '', prev).catch(err => {
-              console.error('Initial progress sync error:', err);
+        
+        setProgress(prevLocal => {
+          if (cloudProgress) {
+            // Merge completed topics (unique values)
+            const mergedCompleted = Array.from(new Set([
+              ...(cloudProgress.completedTopics || []),
+              ...(prevLocal.completedTopics || [])
+            ]));
+            
+            // Merge solved problems (unique values)
+            const mergedSolved = Array.from(new Set([
+              ...(cloudProgress.solvedProblems || []),
+              ...(prevLocal.solvedProblems || [])
+            ]));
+            
+            // Merge weak areas (unique values)
+            const mergedWeak = Array.from(new Set([
+              ...(cloudProgress.weakAreas || []),
+              ...(prevLocal.weakAreas || [])
+            ]));
+
+            // Merge revision status dictionaries
+            const mergedStatus = {
+              ...(cloudProgress.revisionStatus || {}),
+              ...(prevLocal.revisionStatus || {})
+            };
+            
+            // If overlapping status values exist, prioritize higher mastery: mastered > revised > unrevised
+            const allKeys = new Set([
+              ...Object.keys(cloudProgress.revisionStatus || {}),
+              ...Object.keys(prevLocal.revisionStatus || {})
+            ]);
+            allKeys.forEach(k => {
+              const cloudVal = cloudProgress.revisionStatus?.[k];
+              const localVal = prevLocal.revisionStatus?.[k];
+              if (cloudVal && localVal) {
+                if (cloudVal === 'mastered' || localVal === 'mastered') {
+                  mergedStatus[k] = 'mastered';
+                } else if (cloudVal === 'revised' || localVal === 'revised') {
+                  mergedStatus[k] = 'revised';
+                }
+              }
             });
-            return prev;
-          });
-        }
+
+            const mergedProgress: UserProgress = {
+              completedTopics: mergedCompleted,
+              solvedProblems: mergedSolved,
+              revisionStreak: Math.max(cloudProgress.revisionStreak || 0, prevLocal.revisionStreak || 0),
+              lastActiveDate: new Date(cloudProgress.lastActiveDate).getTime() > new Date(prevLocal.lastActiveDate).getTime()
+                ? cloudProgress.lastActiveDate
+                : prevLocal.lastActiveDate,
+              weakAreas: mergedWeak,
+              revisionStatus: mergedStatus
+            };
+
+            // Save the merged results back to both Firestore and localStorage synchronously
+            saveUserProgress(currentUser.uid, currentUser.email || '', mergedProgress).catch(err => {
+              console.error('Initial progress merge-back error:', err);
+            });
+            
+            localStorage.setItem('dsa_hub_progress_v2', JSON.stringify(mergedProgress));
+            return mergedProgress;
+          } else {
+            // If no cloud progress exists yet, back up their current local training session
+            saveUserProgress(currentUser.uid, currentUser.email || '', prevLocal).catch(err => {
+              console.error('Initial progress save error:', err);
+            });
+            return prevLocal;
+          }
+        });
       }
     });
 
@@ -687,6 +745,8 @@ export default function App() {
             <Dashboard 
               progress={progress} 
               onNavigate={handleNavigate}
+              user={user}
+              onSignIn={signInWithGoogle}
             />
           )}
 

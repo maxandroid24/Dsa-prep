@@ -2,14 +2,17 @@ import { Topic, Problem, UserProgress } from '../types';
 import { dsaTopics } from '../data/topics';
 import { getAllProblems } from '../data/problems';
 import { dsaRoadmap } from '../data/roadmap';
-import { Award, Zap, CheckCircle2, Flame, Calendar, Trophy, BookOpen, ChevronRight, Activity, Check } from 'lucide-react';
+import { Award, Zap, CheckCircle2, Flame, Calendar, Trophy, BookOpen, ChevronRight, Activity, Check, Cloud, LogIn } from 'lucide-react';
+import { User } from 'firebase/auth';
 
 interface DashboardProps {
   progress: UserProgress;
   onNavigate: (view: string, topicId?: string) => void;
+  user: User | null;
+  onSignIn: () => void;
 }
 
-export default function Dashboard({ progress, onNavigate }: DashboardProps) {
+export default function Dashboard({ progress, onNavigate, user, onSignIn }: DashboardProps) {
   const totalTopics = dsaTopics.length;
   const completedTopicsCount = progress.completedTopics.length;
   const totalProblemsCount = 390; // 13 topics * 30 problems
@@ -65,6 +68,30 @@ export default function Dashboard({ progress, onNavigate }: DashboardProps) {
           </p>
         </div>
       </div>
+
+      {/* Backup Sync Banner for Guests */}
+      {!user && (
+        <div className="bg-amber-500/10 border border-amber-500/20 text-slate-800 dark:text-slate-100 rounded-2xl p-5 flex flex-col md:flex-row md:items-center md:justify-between gap-4 shadow-[0_4px_15px_rgba(245,158,11,0.05)] animate-fade-in">
+          <div className="flex items-start gap-3.5">
+            <div className="p-2 sm:p-2.5 bg-amber-500/15 text-amber-600 dark:text-amber-400 rounded-xl mt-0.5 sm:mt-0 shrink-0">
+              <Cloud className="w-5 h-5 animate-pulse" />
+            </div>
+            <div>
+              <h4 className="text-xs sm:text-sm font-extrabold tracking-tight">Save Your Progress with Google</h4>
+              <p className="text-[11px] sm:text-xs text-slate-500 dark:text-slate-400 leading-relaxed mt-1">
+                Your DSA solutions and roadmap completions are stored offline in this browser. Sing in with your Google account to back up your progress to our secure Firestore cloud database!
+              </p>
+            </div>
+          </div>
+          <button
+            onClick={onSignIn}
+            className="px-5 py-2.5 bg-amber-500 hover:bg-amber-600 active:bg-amber-700 text-white text-xs font-bold rounded-xl shadow-md cursor-pointer hover:shadow-lg transition shrink-0 select-none flex items-center justify-center gap-2"
+          >
+            <LogIn className="w-3.5 h-3.5" />
+            <span>Connect & Save</span>
+          </button>
+        </div>
+      )}
 
       {/* Metrics Row */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
