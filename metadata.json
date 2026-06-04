@@ -1,0 +1,6 @@
+{
+  "name": "DSA Interview Prep Hub",
+  "description": "A comprehensive dashboard for learning, practicing, and revising Data Structures & Algorithms for Software Engineer interviews.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
