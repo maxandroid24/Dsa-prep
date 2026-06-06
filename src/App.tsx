@@ -5,9 +5,10 @@ import { dsaRoadmap } from './data/roadmap';
 import { getAllProblems } from './data/problems';
 
 // Firebase & Authentication Sync
-import { auth, googleProvider } from './lib/firebase';
+import { auth, googleProvider, db } from './lib/firebase';
 import { fetchUserProgress, saveUserProgress } from './lib/progressSync';
 import { onAuthStateChanged, signInWithPopup, signOut, User } from 'firebase/auth';
+import { doc, setDoc, deleteDoc, serverTimestamp } from 'firebase/firestore';
 
 // Views
 import Dashboard from './components/Dashboard';
@@ -18,6 +19,8 @@ import PatternsView from './components/PatternsView';
 import RevisionView from './components/RevisionView';
 import ResourcesView from './components/ResourcesView';
 import Confetti from './components/Confetti';
+import SystemDesignRoot from './systemdesign/SystemDesignRoot';
+import SystemDesignSidebar from './components/SystemDesignSidebar';
 
 // Icons
 import {
@@ -43,7 +46,8 @@ import {
   LogOut,
   LogIn,
   Cloud,
-  CloudLightning
+  CloudLightning,
+  Database
 } from 'lucide-react';
 
 const DEMO_SEED_PROBLEMS = ['arr-1', 'arr-2', 'arr-3', 'str-2', 'str-5', 'll-1', 'll-4', 'tree-1', 'tree-6', 'graph-2', 'dp-1', 'dp-5', 'bs-1', 'bs-4', 'stack-3', 'recur-2', 'heap-1', 'back-3'];
@@ -74,9 +78,13 @@ export function sanitizeProgress(prog: UserProgress): UserProgress {
 }
 
 export default function App() {
+  const [appMode, setAppMode] = useState<string>('dsa');
   const [activeView, setActiveView] = useState<string>('dashboard');
   const [activeTopicId, setActiveTopicId] = useState<string>('arrays');
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
+    const saved = localStorage.getItem('system_design_theme');
+    return saved ? saved === 'dark' : false;
+  });
   const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
@@ -103,6 +111,58 @@ export default function App() {
     leetcodeSolvedProblems: {},
     maxAgeDays: undefined
   });
+
+  // System Design layouts and progress states
+  const [sysDesignActiveTrack, setSysDesignActiveTrack] = useState<'HLD' | 'LLD'>('HLD');
+  const [sysDesignSelectedTopicId, setSysDesignSelectedTopicId] = useState<string>('scalability-basics');
+  const [sysDesignShowDashboard, setSysDesignShowDashboard] = useState<boolean>(true);
+  const [sysDesignProgress, setSysDesignProgress] = useState<Record<string, 'in_progress' | 'completed'>>({});
+
+  const saveSysDesignProgress = async (topicId: string, status: 'in_progress' | 'completed') => {
+    const nextState = { ...sysDesignProgress, [topicId]: status };
+    setSysDesignProgress(nextState);
+
+    if (user) {
+      try {
+        await setDoc(doc(db, 'users', user.uid, 'progress', topicId), {
+          topicId,
+          userId: user.uid,
+          status,
+          updatedAt: serverTimestamp()
+        });
+      } catch (error) {
+        console.warn("Sync to Firestore denied. Falling back to offline memory.", error);
+      }
+    } else {
+      localStorage.setItem('system_design_guest_progress', JSON.stringify(nextState));
+    }
+  };
+
+  const removeSysDesignProgress = async (topicId: string) => {
+    const nextState = { ...sysDesignProgress };
+    delete nextState[topicId];
+    setSysDesignProgress(nextState);
+
+    if (user) {
+      try {
+        await deleteDoc(doc(db, 'users', user.uid, 'progress', topicId));
+      } catch (error) {
+        console.warn("Removing progress in Firestore failed, using offline mode.", error);
+      }
+    } else {
+      localStorage.setItem('system_design_guest_progress', JSON.stringify(nextState));
+    }
+  };
+
+  // Initial guest system design progress load
+  useEffect(() => {
+    const saved = localStorage.getItem('system_design_guest_progress');
+    if (saved) {
+      try {
+        setSysDesignProgress(JSON.parse(saved));
+      } catch (e) {}
+    }
+  }, []);
 
   // Restore states and hook up onAuthStateChanged
   useEffect(() => {
@@ -559,17 +619,33 @@ export default function App() {
 
           {/* Desktop logo */}
           <div 
-            onClick={() => handleNavigate('dashboard')}
+            onClick={() => {
+              if (appMode === 'system-design') {
+                setSysDesignShowDashboard(true);
+              } else {
+                handleNavigate('dashboard');
+              }
+            }}
             className="flex items-center gap-2.5 cursor-pointer font-sans select-none animate-fade-in"
           >
-            <div className="w-9 h-9 rounded-xl bg-[#4880FF] flex items-center justify-center text-white font-black text-base uppercase shadow-[0_4px_10px_rgba(72,128,255,0.4)]">
-              DS
+            <div className="w-9 h-9 rounded-xl bg-[#4880FF] flex items-center justify-center text-white font-black text-sm uppercase shadow-[0_4px_10px_rgba(72,128,255,0.4)]">
+              {appMode === 'system-design' ? 'SD' : 'DS'}
             </div>
             <div>
               <h1 className="text-sm font-sans font-extrabold tracking-tight block">
-                <span className="text-[#4880FF]">Dash</span>Stack
+                {appMode === 'system-design' ? (
+                  <>
+                    <span className="text-[#4880FF]">Sys</span>Design
+                  </>
+                ) : (
+                  <>
+                    <span className="text-[#4880FF]">Dash</span>Stack
+                  </>
+                )}
               </h1>
-              <span className="text-[9px] text-[#4880FF] font-mono block -mt-1 font-extrabold tracking-wider">DSA PREP HUB</span>
+              <span className="text-[9px] text-[#4880FF] font-mono block -mt-1 font-extrabold tracking-wider">
+                {appMode === 'system-design' ? 'VISUAL ACADEMY' : 'DSA PREP HUB'}
+              </span>
             </div>
           </div>
         </div>
@@ -631,6 +707,50 @@ export default function App() {
               )}
             </div>
           )}
+        </div>
+
+        {/* TOP LEVEL MODE SLIDER */}
+        <div className="flex items-center ml-4 mr-auto md:mr-0 pl-1">
+          <div className="relative flex items-center bg-slate-100 dark:bg-[#1B1E2D] p-1 rounded-full border border-slate-200 dark:border-slate-800 w-[240px] h-9 select-none shrink-0 font-sans shadow-inner">
+            {/* The sliding physical background */}
+            <div 
+              className="absolute top-1 bottom-1 left-1 bg-[#4880FF] rounded-full transition-all duration-300 ease-out shadow-md"
+              style={{
+                width: '114px',
+                transform: `translateX(${appMode === 'system-design' ? '114px' : '0px'})`
+              }}
+            />
+            
+            {/* Option A: DSA */}
+            <button
+              type="button"
+              onClick={() => {
+                setAppMode('dsa');
+                setActiveView('dashboard');
+              }}
+              className={`flex-1 relative z-10 text-center text-[10px] md:text-[11px] font-extrabold tracking-wide uppercase transition-colors duration-200 cursor-pointer h-full flex items-center justify-center gap-1 ${
+                appMode === 'dsa' ? 'text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+            >
+              <Activity className="w-3.5 h-3.5" />
+              <span>DSA Prep</span>
+            </button>
+
+            {/* Option B: System Design */}
+            <button
+              type="button"
+              onClick={() => {
+                setAppMode('system-design');
+                setActiveView('system-design');
+              }}
+              className={`flex-1 relative z-10 text-center text-[10px] md:text-[11px] font-extrabold tracking-wide uppercase transition-colors duration-200 cursor-pointer h-full flex items-center justify-center gap-1 ${
+                appMode === 'system-design' ? 'text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
+              }`}
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span>Sys Design</span>
+            </button>
+          </div>
         </div>
 
         {/* Right action metrics */}
@@ -733,10 +853,15 @@ export default function App() {
           ) : (
             <button 
               onClick={signInWithGoogle}
-              className="px-4 py-2 bg-[#4880FF] hover:bg-[#3570F0] text-white text-xs font-bold rounded-xl transition flex items-center gap-2 shadow-md hover:shadow-[0_4px_12px_rgba(72,128,255,0.4)] select-none cursor-pointer shrink-0 hidden md:flex"
+              className="p-2 w-9 h-9 bg-slate-100 hover:bg-slate-200 dark:bg-[#1B1E2D] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full border border-slate-250 dark:border-slate-800 transition flex items-center justify-center shadow-sm select-none cursor-pointer shrink-0"
+              title="Connect with Google"
             >
-              <LogIn className="w-3.5 h-3.5" />
-              <span>Connect Google</span>
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+              </svg>
             </button>
           )}
         </div>
@@ -751,117 +876,144 @@ export default function App() {
           isDarkMode ? 'bg-[#232738] border-[#2E344A]' : 'bg-white border-[#F1F2F7]'
         }`}>
           <div className="p-4 space-y-6">
-            {/* Primary Nav group links */}
-            <div className="space-y-1.5 font-sans text-xs select-none">
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold px-3 pb-2 uppercase tracking-wider block">
-                MAIN WORKSPACE
-              </span>
+            {appMode === 'system-design' ? (
+              <SystemDesignSidebar
+                activeTrack={sysDesignActiveTrack}
+                setActiveTrack={setSysDesignActiveTrack}
+                selectedTopicId={sysDesignSelectedTopicId}
+                setSelectedTopicId={setSysDesignSelectedTopicId}
+                showDashboard={sysDesignShowDashboard}
+                setShowDashboard={setSysDesignShowDashboard}
+                progressState={sysDesignProgress}
+                onSaveProgress={saveSysDesignProgress}
+                onRemoveProgress={removeSysDesignProgress}
+                isDarkMode={isDarkMode}
+              />
+            ) : (
+              <>
+                {/* Primary Nav group links */}
+                <div className="space-y-1.5 font-sans text-xs select-none">
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold px-3 pb-2 uppercase tracking-wider block">
+                    MAIN WORKSPACE
+                  </span>
 
-              <button 
-                onClick={() => handleNavigate('dashboard')}
-                className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
-                  activeView === 'dashboard' 
-                    ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
-                    : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
-                }`}
-              >
-                <LayoutDashboard className="w-4 h-4" /> Dashboard Workspace
-              </button>
+                  <button 
+                    onClick={() => handleNavigate('dashboard')}
+                    className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
+                      activeView === 'dashboard' 
+                        ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
+                    }`}
+                  >
+                    <LayoutDashboard className="w-4 h-4" /> Dashboard Workspace
+                  </button>
 
-              <button 
-                onClick={() => handleNavigate('roadmap')}
-                className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
-                  activeView === 'roadmap' 
-                    ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
-                    : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
-                }`}
-              >
-                <Map className="w-4 h-4" /> DSA Roadmap Map
-              </button>
+                  <button 
+                    onClick={() => handleNavigate('roadmap')}
+                    className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
+                      activeView === 'roadmap' 
+                        ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
+                    }`}
+                  >
+                    <Map className="w-4 h-4" /> DSA Roadmap Map
+                  </button>
 
-              <button 
-                onClick={() => handleNavigate('practice')}
-                className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
-                  activeView === 'practice' 
-                    ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
-                    : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
-                }`}
-              >
-                <Trophy className="w-4 h-4" /> Problem Database
-              </button>
+                  <button 
+                    onClick={() => handleNavigate('practice')}
+                    className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
+                      activeView === 'practice' 
+                        ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
+                    }`}
+                  >
+                    <Trophy className="w-4 h-4" /> Problem Database
+                  </button>
 
-              <button 
-                onClick={() => handleNavigate('patterns')}
-                className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
-                  activeView === 'patterns' 
-                    ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
-                    : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
-                }`}
-              >
-                <Codepen className="w-4 h-4" /> Algorithmic Patterns
-              </button>
+                  <button 
+                    onClick={() => handleNavigate('patterns')}
+                    className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
+                      activeView === 'patterns' 
+                        ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
+                    }`}
+                  >
+                    <Codepen className="w-4 h-4" /> Algorithmic Patterns
+                  </button>
 
-              <button 
-                onClick={() => handleNavigate('prep-mode')}
-                className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
-                  activeView === 'prep-mode' 
-                    ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
-                    : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
-                }`}
-              >
-                <Activity className="w-4 h-4" /> SDE Prep Schedules
-              </button>
+                  <button 
+                    onClick={() => handleNavigate('prep-mode')}
+                    className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
+                      activeView === 'prep-mode' 
+                        ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
+                    }`}
+                  >
+                    <Activity className="w-4 h-4" /> SDE Prep Schedules
+                  </button>
 
-              <button 
-                onClick={() => handleNavigate('resources')}
-                className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
-                  activeView === 'resources' 
-                    ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
-                    : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
-                }`}
-              >
-                <BookMarked className="w-4 h-4" /> Prep Resources
-              </button>
-            </div>
+                  <button 
+                    onClick={() => handleNavigate('resources')}
+                    className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 ${
+                      activeView === 'resources' 
+                        ? 'border-l-4 border-[#4880FF] bg-[#4880FF]/10 text-[#4880FF] font-bold rounded-r-lg rounded-l-none pl-2.5' 
+                        : 'text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5'
+                    }`}
+                  >
+                    <BookMarked className="w-4 h-4" /> Prep Resources
+                  </button>
 
-            {/* Sub Nav Section: Lesson index list */}
-            <div className="space-y-1.5 font-sans text-xs">
-              <span className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold px-3 pb-1 uppercase tracking-wider block">
-                TOPICS PROGRESS
-              </span>
-              <div className="max-h-56 overflow-y-auto space-y-1 pr-1.5 scrollbar-thin scrollbar-thumb-slate-800">
-                {dsaTopics.map(t => {
-                  const isDone = progress.completedTopics.includes(t.id);
-                  const isCurrent = activeView === 'topics' && activeTopicId === t.id;
-                  return (
-                    <div 
-                      key={t.id}
-                      onClick={() => handleNavigate('topics', t.id)}
-                      className={`px-3 py-2 rounded-lg text-[11px] cursor-pointer transition-all duration-150 flex justify-between items-center ${
-                        isCurrent
-                          ? 'bg-[#4880FF]/10 text-[#4880FF] font-bold border border-[#4880FF]/20'
-                          : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-800 dark:hover:text-slate-200'
-                      }`}
-                    >
-                      <span className="truncate">{t.name}</span>
-                      {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-[#00B69B] shrink-0 ml-1.5" />}
-                    </div>
-                  );
-                })}
-              </div>
-            </div>
+                  <button 
+                    onClick={() => {
+                      setAppMode('system-design');
+                      setActiveView('system-design');
+                    }}
+                    className={`w-[calc(100%-4px)] text-left px-3 py-2.5 flex items-center gap-2.5 transition-all duration-155 text-slate-500 dark:text-slate-400 hover:text-[#4880FF] dark:hover:text-[#4880FF] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-l-4 border-transparent pl-2.5`}
+                  >
+                    <Database className="w-4 h-4" /> System Design Visuals
+                  </button>
+                </div>
 
-            {/* Bottom Tip cards */}
-            <div className={`p-4 rounded-xl border font-sans text-[11px] ${
-              isDarkMode ? 'bg-[#1B1E2D] border-[#2C3148]' : 'bg-slate-50 border-[#F1F2F7]'
-            }`}>
-              <h5 className="font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-1 text-[11px]">
-                <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Interview ProTip
-              </h5>
-              <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-[10px]">
-                "Never write code immediately. Discuss complexities aloud, identify edge points, and state constraints first."
-              </p>
-            </div>
+                {/* Sub Nav Section: Lesson index list */}
+                <div className="space-y-1.5 font-sans text-xs">
+                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-extrabold px-3 pb-1 uppercase tracking-wider block">
+                    TOPICS PROGRESS
+                  </span>
+                  <div className="max-h-56 overflow-y-auto space-y-1 pr-1.5 scrollbar-thin scrollbar-thumb-slate-800 block">
+                    {dsaTopics.map(t => {
+                      const isDone = progress.completedTopics.includes(t.id);
+                      const isCurrent = activeView === 'topics' && activeTopicId === t.id;
+                      return (
+                        <div 
+                          key={t.id}
+                          onClick={() => handleNavigate('topics', t.id)}
+                          className={`px-3 py-2 rounded-lg text-[11px] cursor-pointer transition-all duration-150 flex justify-between items-center ${
+                            isCurrent
+                              ? 'bg-[#4880FF]/10 text-[#4880FF] font-bold border border-[#4880FF]/25'
+                              : 'text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/40 hover:text-slate-800 dark:hover:text-slate-200'
+                          }`}
+                        >
+                          <span className="truncate">{t.name}</span>
+                          {isDone && <CheckCircle2 className="w-3.5 h-3.5 text-[#00B69B] shrink-0 ml-1.5" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Bottom Tip cards */}
+                <div className={`p-4 rounded-xl border font-sans text-[11px] ${
+                  isDarkMode ? 'bg-[#1B1E2D] border-[#2C3148]' : 'bg-slate-50 border-[#F1F2F7]'
+                }`}>
+                  <h5 className="font-bold text-slate-700 dark:text-slate-200 mb-1 flex items-center gap-1 text-[11px]">
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" /> Interview ProTip
+                  </h5>
+                  <p className="text-slate-500 dark:text-slate-400 leading-relaxed text-[10px]">
+                    "Never write code immediately. Discuss complexities aloud, identify edge points, and state constraints first."
+                  </p>
+                </div>
+              </>
+            )}
           </div>
         </aside>
 
@@ -874,112 +1026,140 @@ export default function App() {
               className="absolute inset-0 bg-black/60 backdrop-blur-sm" 
             />
             {/* drawer container */}
-            <div className={`relative w-64 h-full p-4 space-y-6 ${
+            <div className={`relative w-72 h-full p-4 space-y-6 overflow-y-auto ${
               isDarkMode ? 'bg-[#232738] text-slate-100' : 'bg-white text-slate-900'
             }`}>
-              <div className="flex justify-between items-center pb-2.5 border-b border-slate-205/10">
-                <span className="text-xs font-mono font-bold text-slate-400">DSA NAV MENU</span>
-                <button onClick={() => setMobileMenuOpen(false)}>
-                  <X className="w-5 h-5 text-slate-400" />
-                </button>
-              </div>
-
-              <div className="space-y-1 font-mono text-xs">
-                <button 
-                  onClick={() => handleNavigate('dashboard')}
-                  className="w-full text-left px-3 py-2.5 rounded hover:bg-slate-900 text-slate-350"
-                >
-                  Dashboard
-                </button>
-                <button 
-                  onClick={() => handleNavigate('roadmap')}
-                  className="w-full text-left px-3 py-2.5 rounded hover:bg-slate-900 text-slate-350"
-                >
-                  DSA Roadmap
-                </button>
-                <button 
-                  onClick={() => handleNavigate('practice')}
-                  className="w-full text-left px-3 py-2.5 rounded hover:bg-slate-900 text-slate-355"
-                >
-                  Problem Bank
-                </button>
-                <button 
-                  onClick={() => handleNavigate('patterns')}
-                  className="w-full text-left px-3 py-2.5 rounded hover:bg-slate-900 text-slate-355"
-                >
-                  Patterns
-                </button>
-                <button 
-                  onClick={() => handleNavigate('prep-mode')}
-                  className="w-full text-left px-3 py-2.5 rounded hover:bg-slate-900 text-slate-355"
-                >
-                  SDE Prep Schedules
-                </button>
-                <button 
-                  onClick={() => handleNavigate('resources')}
-                  className="w-full text-left px-3 py-2.5 rounded hover:bg-slate-900 text-slate-355"
-                >
-                  Resources
-                </button>
-              </div>
-
-              {/* Mobile Auth button */}
-              <div className="pt-4 border-t border-slate-700/20">
-                {authLoading ? (
-                  <div className="h-9 w-full bg-slate-800 animate-pulse rounded-xl" />
-                ) : user ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-950/20 border border-[#4880FF]/20 rounded-xl">
-                      {user.photoURL && (
-                        <img 
-                          src={user.photoURL} 
-                          alt={user.displayName || "User"} 
-                          className="w-6 h-6 rounded-full"
-                          referrerPolicy="no-referrer"
-                        />
-                      )}
-                      <div className="overflow-hidden">
-                        <div className="text-[11px] font-bold text-slate-200 truncate">{user.displayName || 'Authorized Member'}</div>
-                        <div className="text-[9px] text-[#00B69B] uppercase font-mono tracking-wider font-extrabold flex items-center gap-0.5">Sync Active</div>
-                      </div>
-                    </div>
-                    <button 
-                      onClick={handleSignOut}
-                      className="w-full text-left px-3 py-2 rounded text-red-400 hover:bg-slate-900 border border-red-500/10 hover:border-red-500/25 text-xs font-bold transition flex items-center gap-2 cursor-pointer"
-                    >
-                      <LogOut className="w-3.5 h-3.5" /> Sign Out Google
+              {appMode === 'system-design' ? (
+                <>
+                  <div className="flex justify-between items-center pb-2.5 border-b border-slate-200 dark:border-slate-800">
+                    <span className="text-xs font-mono font-bold text-slate-400">SYSTEM DESIGN NAV</span>
+                    <button onClick={() => setMobileMenuOpen(false)}>
+                      <X className="w-5 h-5 text-slate-400" />
                     </button>
                   </div>
-                ) : (
-                  <button 
-                    onClick={signInWithGoogle}
-                    className="w-full px-3 py-2 bg-[#4880FF] hover:bg-[#3570F0] text-white rounded text-xs font-bold transition flex items-center justify-center gap-2 shadow cursor-pointer"
-                  >
-                    <LogIn className="w-3.5 h-3.5" /> Sign In Google
-                  </button>
-                )}
-              </div>
-
-              <div className="space-y-1 pt-3 border-t border-slate-850">
-                <span className="text-[10px] text-slate-500 font-bold block pb-1">STUDY TOPICS</span>
-                <div className="max-h-56 overflow-y-auto space-y-0.5">
-                  {dsaTopics.map(t => (
-                    <button 
-                      key={t.id}
-                      onClick={() => handleNavigate('topics', t.id)}
-                      className="w-full text-left text-xs px-3 py-1.5 rounded hover:bg-slate-900 text-slate-400 block truncate"
-                    >
-                      {t.name}
+                  <SystemDesignSidebar
+                    activeTrack={sysDesignActiveTrack}
+                    setActiveTrack={setSysDesignActiveTrack}
+                    selectedTopicId={sysDesignSelectedTopicId}
+                    setSelectedTopicId={setSysDesignSelectedTopicId}
+                    showDashboard={sysDesignShowDashboard}
+                    setShowDashboard={setSysDesignShowDashboard}
+                    progressState={sysDesignProgress}
+                    onSaveProgress={saveSysDesignProgress}
+                    onRemoveProgress={removeSysDesignProgress}
+                    isDarkMode={isDarkMode}
+                    onCloseMenu={() => setMobileMenuOpen(false)}
+                  />
+                </>
+              ) : (
+                <>
+                  <div className="flex justify-between items-center pb-2.5 border-b border-slate-205/10">
+                    <span className="text-xs font-mono font-bold text-slate-400">DSA NAV MENU</span>
+                    <button onClick={() => setMobileMenuOpen(false)}>
+                      <X className="w-5 h-5 text-slate-400" />
                     </button>
-                  ))}
-                </div>
-              </div>
+                  </div>
+
+                  <div className="space-y-1 font-mono text-xs">
+                    <button 
+                      onClick={() => handleNavigate('dashboard')}
+                      className="w-full text-left px-3 py-2.5 rounded hover:bg-slate-900 text-slate-350"
+                    >
+                      Dashboard
+                    </button>
+                    <button 
+                      onClick={() => handleNavigate('roadmap')}
+                      className="w-full text-left px-3 py-2.5 rounded hover:bg-slate-900 text-slate-350"
+                    >
+                      DSA Roadmap
+                    </button>
+                    <button 
+                      onClick={() => handleNavigate('practice')}
+                      className="w-full text-left px-3 py-2.5 rounded hover:bg-slate-900 text-slate-355"
+                    >
+                      Problem Bank
+                    </button>
+                    <button 
+                      onClick={() => handleNavigate('patterns')}
+                      className="w-full text-left px-3 py-2.5 rounded hover:bg-slate-900 text-slate-355"
+                    >
+                      Patterns
+                    </button>
+                    <button 
+                      onClick={() => handleNavigate('prep-mode')}
+                      className="w-full text-left px-3 py-2.5 rounded hover:bg-slate-900 text-slate-355"
+                    >
+                      SDE Prep Schedules
+                    </button>
+                    <button 
+                      onClick={() => handleNavigate('resources')}
+                      className="w-full text-left px-3 py-2.5 rounded hover:bg-slate-900 text-slate-355"
+                    >
+                      Resources
+                    </button>
+                  </div>
+
+                  {/* Mobile Auth button */}
+                  <div className="pt-4 border-t border-slate-700/20">
+                    {authLoading ? (
+                      <div className="h-9 w-full bg-slate-800 animate-pulse rounded-xl" />
+                    ) : user ? (
+                      <div className="space-y-3">
+                        <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-950/20 border border-[#4880FF]/20 rounded-xl">
+                          {user.photoURL && (
+                            <img 
+                              src={user.photoURL} 
+                              alt={user.displayName || "User"} 
+                              className="w-6 h-6 rounded-full"
+                              referrerPolicy="no-referrer"
+                            />
+                          )}
+                          <div className="overflow-hidden">
+                            <div className="text-[11px] font-bold text-slate-200 truncate">{user.displayName || 'Authorized Member'}</div>
+                            <div className="text-[9px] text-[#00B69B] uppercase font-mono tracking-wider font-extrabold flex items-center gap-0.5">Sync Active</div>
+                          </div>
+                        </div>
+                        <button 
+                          onClick={handleSignOut}
+                          className="w-full text-left px-3 py-2 rounded text-red-400 hover:bg-slate-900 border border-red-500/10 hover:border-red-500/25 text-xs font-bold transition flex items-center gap-2 cursor-pointer"
+                        >
+                          <LogOut className="w-3.5 h-3.5" /> Sign Out Google
+                        </button>
+                      </div>
+                    ) : (
+                      <button 
+                        onClick={signInWithGoogle}
+                        className="w-full px-3 py-2 bg-[#4880FF] hover:bg-[#3570F0] text-white rounded text-xs font-bold transition flex items-center justify-center gap-2 shadow cursor-pointer"
+                      >
+                        <LogIn className="w-3.5 h-3.5" /> Sign In Google
+                      </button>
+                    )}
+                  </div>
+
+                  <div className="space-y-1 pt-3 border-t border-slate-850">
+                    <span className="text-[10px] text-slate-500 font-bold block pb-1">STUDY TOPICS</span>
+                    <div className="max-h-56 overflow-y-auto space-y-0.5">
+                      {dsaTopics.map(t => (
+                        <button 
+                          key={t.id}
+                          onClick={() => handleNavigate('topics', t.id)}
+                          className="w-full text-left text-xs px-3 py-1.5 rounded hover:bg-slate-900 text-slate-400 block truncate"
+                        >
+                          {t.name}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
             </div>
           </div>
         )}
 
         {/* VIEW B: MAIN DYNAMIC WORKSPACE PANEL */}
-        <main className="flex-1 py-6 px-4 md:px-8 max-w-full overflow-x-hidden min-h-[calc(100vh-4rem)]">
+        <main className={`flex-1 max-w-full overflow-x-hidden min-h-[calc(100vh-4rem)] ${
+          activeView === 'system-design' ? 'p-0' : 'py-6 px-4 md:px-8'
+        }`}>
           {activeView === 'dashboard' && (
             <Dashboard 
               progress={getFilteredProgress(progress)} 
@@ -1034,6 +1214,28 @@ export default function App() {
 
           {activeView === 'resources' && (
             <ResourcesView />
+          )}
+
+          {activeView === 'system-design' && (
+            <SystemDesignRoot 
+              isDarkMode={isDarkMode} 
+              onToggleTheme={() => setIsDarkMode(!isDarkMode)}
+              appMode={appMode}
+              onAppModeChange={(mode) => {
+                setAppMode(mode);
+                setActiveView(mode === 'dsa' ? 'dashboard' : 'system-design');
+              }}
+              isEmbedded={true}
+              activeTrack={sysDesignActiveTrack}
+              setActiveTrack={setSysDesignActiveTrack}
+              selectedTopicId={sysDesignSelectedTopicId}
+              setSelectedTopicId={setSysDesignSelectedTopicId}
+              showDashboard={sysDesignShowDashboard}
+              setShowDashboard={setSysDesignShowDashboard}
+              progressState={sysDesignProgress}
+              onSaveProgress={saveSysDesignProgress}
+              onRemoveProgress={removeSysDesignProgress}
+            />
           )}
         </main>
       </div>
