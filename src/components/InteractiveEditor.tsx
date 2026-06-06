@@ -1,6 +1,6 @@
 import React, { useState, useEffect, FormEvent, useRef } from 'react';
 import { Problem } from '../types';
-import { getStarterCode, getProblemTestCases, ProblemTestCase } from '../data/starterTemplates';
+import { getStarterCode, getProblemTestCases, ProblemTestCase, getSolutionCode } from '../data/starterTemplates';
 import { 
   X, Play, Terminal, Code2, Plus, Trash2, CheckCircle2, AlertTriangle, 
   HelpCircle, RefreshCw, Layers, Check, Copy, FileText, Settings, Sparkles 
@@ -129,6 +129,10 @@ export default function InteractiveEditor({
   
   // Independent language code state tracking
   const [codes, setCodes] = useState<{ [lang: string]: string }>({});
+
+  // Tab views for right panel ('test-cases' or 'solution')
+  const [rightTab, setRightTab] = useState<'test-cases' | 'solution'>('test-cases');
+  const [copiedSolution, setCopiedSolution] = useState(false);
 
   // Custom and pre-defined test cases
   const [testCases, setTestCases] = useState<ProblemTestCase[]>([]);
@@ -422,16 +426,36 @@ export default function InteractiveEditor({
           {/* RIGHT COLUMN: Interactive Test Cases & Standard Compile Outputs */}
           <div className="w-full lg:w-2/5 h-1/2 lg:h-full flex flex-col min-h-0 bg-white dark:bg-[#1A1D2B]">
             {/* Header Tabs */}
-            <div className="px-6 py-3 border-b border-slate-150 dark:border-slate-800 flex items-center gap-4 shrink-0">
-              <span className="text-xs font-black tracking-widest text-slate-500 dark:text-slate-400 uppercase select-none">
-                Interactive Test Suites
-              </span>
+            <div className="px-6 border-b border-slate-150 dark:border-slate-800 flex items-center gap-6 shrink-0 bg-slate-50 dark:bg-[#161924]">
+              <button
+                type="button"
+                onClick={() => setRightTab('test-cases')}
+                className={`py-3.5 text-xs font-extrabold uppercase tracking-widest border-b-2 transition cursor-pointer select-none ${
+                  rightTab === 'test-cases'
+                    ? 'border-[#4880FF] text-[#4880FF]'
+                    : 'border-transparent text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'
+                }`}
+              >
+                Test Cases & Run
+              </button>
+              <button
+                type="button"
+                onClick={() => setRightTab('solution')}
+                className={`py-3.5 text-xs font-extrabold uppercase tracking-widest border-b-2 transition cursor-pointer select-none flex items-center gap-1.5`}
+              >
+                <Sparkles className="w-3.5 h-3.5 text-[#00B69B]" />
+                <span className={rightTab === 'solution' ? 'text-[#4880FF]' : 'text-slate-400 hover:text-slate-600 dark:hover:text-slate-200'}>
+                  Reference Solution
+                </span>
+              </button>
             </div>
 
             {/* Test list with scroll capability */}
             <div className="flex-1 overflow-y-auto p-6 space-y-6">
               
-              {/* Problem Explanation Prompt reminder */}
+              {rightTab === 'test-cases' ? (
+                <>
+                  {/* Problem Explanation Prompt reminder */}
               <div className="bg-slate-50 dark:bg-[#161924] border border-slate-100 dark:border-slate-800/80 rounded-2xl p-4 space-y-2">
                 <div className="flex items-center gap-1.5 text-xs font-bold text-slate-700 dark:text-slate-300">
                   <FileText className="w-4 h-4 text-[#4880FF]" />
@@ -631,6 +655,106 @@ export default function InteractiveEditor({
                     </pre>
                   </div>
 
+                </div>
+              )}
+                </>
+              ) : (
+                <div className="space-y-5 animate-scale-in">
+                  {/* Intro/Summary of solution */}
+                  <div className="bg-gradient-to-r from-[#00B69B]/5 to-[#4880FF]/5 border border-slate-150 dark:border-slate-800 rounded-2xl p-5 space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Sparkles className="w-5 h-5 text-[#00B69B]" />
+                        <h4 className="text-sm font-black text-slate-850 dark:text-white">
+                          Reference Editorial Solution
+                        </h4>
+                      </div>
+                      <span className="text-[10px] px-2.5 py-1 bg-slate-100 dark:bg-[#1E2335] text-[#4880FF] rounded-lg font-black uppercase tracking-wider">
+                        {selectedLang === 'cpp' ? 'C++' : selectedLang}
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-500 dark:text-slate-450 leading-relaxed">
+                      This is an optimal, highly-efficient reference solution designed specifically for {problem.title}. It runs with guaranteed complexity bounds.
+                    </p>
+                    <p className="text-[11px] font-mono text-[#00B69B] bg-[#00B69B]/5 p-2.5 rounded-xl border border-[#00B69B]/10 font-bold">
+                       Complexity: Time = {problem.timeComplexity} | Space = {problem.spaceComplexity}
+                    </p>
+                  </div>
+
+                  {/* Operations bar */}
+                  <div className="flex flex-col sm:flex-row items-center gap-3">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        if (confirm(`Overwrite your current active ${selectedLang.toUpperCase()} code workspace draft with this reference solution?`)) {
+                          setCodes(prev => ({
+                            ...prev,
+                            [selectedLang]: getSolutionCode(problem.id, problem.title, selectedLang)
+                          }));
+                          setRightTab('test-cases');
+                        }
+                      }}
+                      className="w-full sm:flex-1 cursor-pointer bg-[#00B69B] hover:bg-[#009E86] active:bg-[#008A74] text-white text-xs font-black py-2.5 px-3.5 rounded-xl shadow-md transition flex items-center justify-center gap-2 select-none"
+                    >
+                      <Code2 className="w-4 h-4" />
+                      <span>Apply Solution to Editor</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const code = getSolutionCode(problem.id, problem.title, selectedLang);
+                        navigator.clipboard.writeText(code);
+                        setCopiedSolution(true);
+                        setTimeout(() => setCopiedSolution(false), 2000);
+                      }}
+                      className="w-full sm:w-auto cursor-pointer bg-slate-100 hover:bg-slate-200 dark:bg-[#202436] dark:hover:bg-[#2D3249] text-slate-800 dark:text-white text-xs font-black py-2.5 px-4 rounded-xl transition flex items-center justify-center gap-1.5 min-w-[110px]"
+                    >
+                      {copiedSolution ? (
+                        <>
+                          <Check className="w-4 h-4 text-[#00B69B]" />
+                          <span className="text-[#00B69B]">Copied!</span>
+                        </>
+                      ) : (
+                        <>
+                          <Copy className="w-4 h-4" />
+                          <span>Copy Code</span>
+                        </>
+                      )}
+                    </button>
+                  </div>
+
+                  {/* Elegant solution preview block */}
+                  <div className="border border-slate-150 dark:border-slate-800 rounded-2xl overflow-hidden shadow-inner bg-[#0d0e12] flex flex-col min-h-[250px]">
+                    {/* Title banner */}
+                    <div className="px-4 py-2.5 border-b border-slate-800 bg-[#12141c] flex items-center justify-between text-[11px] font-mono text-slate-400 select-none">
+                      <span>solution_reference.{selectedLang === 'python' ? 'py' : selectedLang === 'cpp' ? 'cpp' : selectedLang === 'java' ? 'java' : 'kt'}</span>
+                      <span>Verified</span>
+                    </div>
+
+                    {/* Highlighted text visual block */}
+                    <div className="flex-1 flex overflow-auto font-mono text-xs leading-relaxed py-4 pr-4 bg-[#0d0e12]">
+                      {/* Line numbering sidebar */}
+                      <div className="w-10 text-slate-600 text-right pr-3 select-none border-r border-[#1B1E2D]/50 text-[11px] h-full overflow-hidden">
+                        {getSolutionCode(problem.id, problem.title, selectedLang).trim().split('\n').map((_, idx) => (
+                          <div key={idx} className="h-5">
+                            {idx + 1}
+                          </div>
+                        ))}
+                      </div>
+
+                      {/* Preformated scroll content */}
+                      <pre 
+                        className="flex-1 pl-4 text-slate-200 overflow-visible text-[11px] select-text whitespace-pre pointer-events-auto leading-5"
+                        style={{ 
+                          margin: 0, 
+                          fontFamily: "JetBrains Mono, ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace",
+                          tabSize: 4 
+                        }}
+                        dangerouslySetInnerHTML={{ __html: highlightCode(getSolutionCode(problem.id, problem.title, selectedLang), selectedLang) }}
+                      />
+                    </div>
+                  </div>
                 </div>
               )}
 

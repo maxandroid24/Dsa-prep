@@ -64,7 +64,7 @@ export default function Dashboard({
   const masteredPercent = totalTopics > 0 ? (masteredCount / totalTopics) * 20 : 0;
   
   const rawReadiness = Math.round((completedTopicsCount / totalTopics) * 40 + (solvedProblemsCount / 100) * 40 + masteredPercent); // assuming 100 benchmark solved for 100% problem weighting
-  const readinessPercent = Math.min(100, Math.max(5, rawReadiness));
+  const readinessPercent = Math.min(100, Math.max(0, rawReadiness));
 
   // Recommend next topic
   const nextTopicId = dsaRoadmap.find(node => !progress.completedTopics.includes(node.id))?.id || 'arrays';

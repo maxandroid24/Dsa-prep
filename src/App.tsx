@@ -49,7 +49,8 @@ import {
 export default function App() {
   const [activeView, setActiveView] = useState<string>('dashboard');
   const [activeTopicId, setActiveTopicId] = useState<string>('arrays');
-  const [isDarkMode, setIsDarkMode] = useState<boolean>(true);
+  const [isDarkMode, setIsDarkMode] = useState<boolean>(false);
+  const [isSidebarOpen, setIsSidebarOpen] = useState<boolean>(true);
   const [mobileMenuOpen, setMobileMenuOpen] = useState<boolean>(false);
   const [showConfetti, setShowConfetti] = useState<boolean>(false);
   
@@ -64,13 +65,13 @@ export default function App() {
 
   // Initialize progress state tracking synced to browser local storage
   const [progress, setProgress] = useState<UserProgress>({
-    completedTopics: ['arrays'], // prefill first to give mock momentum
-    solvedProblems: ['arr-1'], // prefill an initial solved problem
-    revisionStreak: 3, // prefill a high streak to inspire
+    completedTopics: [], 
+    solvedProblems: [], 
+    revisionStreak: 0, 
     lastActiveDate: new Date().toISOString(),
-    weakAreas: ['graphs'],
-    revisionStatus: { 'arrays': 'revised' },
-    solvedProblemDates: { 'arr-1': new Date().toISOString() },
+    weakAreas: [],
+    revisionStatus: {},
+    solvedProblemDates: {},
     leetcodeUsername: '',
     leetcodeSolvedProblems: {},
     maxAgeDays: undefined
@@ -82,7 +83,27 @@ export default function App() {
     const raw = localStorage.getItem('dsa_hub_progress_v2');
     if (raw) {
       try {
-        setProgress(JSON.parse(raw));
+        const parsed = JSON.parse(raw);
+        // Migrate legacy prefilled momentum defaults to a clean brand new user slate
+        if (parsed.completedTopics && parsed.completedTopics.length === 1 && parsed.completedTopics[0] === 'arrays') {
+          parsed.completedTopics = [];
+        }
+        if (parsed.solvedProblems && parsed.solvedProblems.length === 1 && parsed.solvedProblems[0] === 'arr-1') {
+          parsed.solvedProblems = [];
+        }
+        if (parsed.revisionStreak === 3) {
+          parsed.revisionStreak = 0;
+        }
+        if (parsed.weakAreas && parsed.weakAreas.length === 1 && parsed.weakAreas[0] === 'graphs') {
+          parsed.weakAreas = [];
+        }
+        if (parsed.revisionStatus && parsed.revisionStatus['arrays'] === 'revised') {
+          delete parsed.revisionStatus['arrays'];
+        }
+        if (parsed.solvedProblemDates && parsed.solvedProblemDates['arr-1']) {
+          delete parsed.solvedProblemDates['arr-1'];
+        }
+        setProgress(parsed);
       } catch (err) {
         console.error('Progress restore error:', err);
       }
@@ -443,7 +464,7 @@ export default function App() {
   return (
     <div className={`min-h-screen text-sans transition-colors duration-150 ${
       isDarkMode 
-        ? 'bg-[#1B1E2D] text-slate-100 dark-theme' 
+        ? 'bg-[#1B1E2D] text-slate-100 dark-theme dark' 
         : 'bg-[#F5F6FA] text-slate-900'
     }`}>
       <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
@@ -464,10 +485,24 @@ export default function App() {
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
           </button>
 
+          {/* Desktop Sidebar collapse/toggle button */}
+          <button 
+            type="button"
+            onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+            className={`p-1.5 rounded hidden md:flex border select-none cursor-pointer transition-all duration-150 items-center justify-center mr-1 ${
+              isDarkMode 
+                ? 'border-slate-800 text-slate-400 hover:text-white hover:bg-slate-800' 
+                : 'border-slate-200 text-slate-500 hover:text-slate-800 hover:bg-slate-100'
+            }`}
+            title={isSidebarOpen ? "Collapse Sidebar" : "Expand Sidebar"}
+          >
+            <Menu className="w-5 h-5 animate-pulse-subtle" />
+          </button>
+
           {/* Desktop logo */}
           <div 
             onClick={() => handleNavigate('dashboard')}
-            className="flex items-center gap-2.5 cursor-pointer font-sans select-none"
+            className="flex items-center gap-2.5 cursor-pointer font-sans select-none animate-fade-in"
           >
             <div className="w-9 h-9 rounded-xl bg-[#4880FF] flex items-center justify-center text-white font-black text-base uppercase shadow-[0_4px_10px_rgba(72,128,255,0.4)]">
               DS
@@ -652,7 +687,9 @@ export default function App() {
       {/* 2. Primary layout splits */}
       <div className="flex">
         {/* VIEW A: DESKTOP SIDEBAR NAVIGATION */}
-        <aside className={`w-64 border-r hidden md:block shrink-0 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto ${
+        <aside className={`border-r hidden md:block shrink-0 h-[calc(100vh-4rem)] sticky top-16 overflow-y-auto transition-all duration-300 ease-in-out ${
+          isSidebarOpen ? 'w-64 opacity-100' : 'w-0 opacity-0 overflow-hidden border-none'
+        } ${
           isDarkMode ? 'bg-[#232738] border-[#2E344A]' : 'bg-white border-[#F1F2F7]'
         }`}>
           <div className="p-4 space-y-6">
