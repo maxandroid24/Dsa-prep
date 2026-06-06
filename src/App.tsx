@@ -462,12 +462,25 @@ export default function App() {
   };
 
   return (
-    <div className={`min-h-screen text-sans transition-colors duration-150 ${
+    <div className={`min-h-screen text-sans transition-all duration-300 relative overflow-hidden ${
       isDarkMode 
-        ? 'bg-[#1B1E2D] text-slate-100 dark-theme dark' 
-        : 'bg-[#F5F6FA] text-slate-900'
+        ? 'bg-gradient-to-br from-[#0C0E17] via-[#121422] to-[#1D192C] text-slate-100 dark-theme dark' 
+        : 'bg-gradient-to-br from-[#F5F7FA] via-[#ECEFF6] to-[#F3EBFF] text-slate-900'
     }`}>
-      <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
+      {/* Liquid Glass ambient drifting background blobs */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
+        {/* Blob 1: Fuchsia neon glow */}
+        <div className="absolute w-[350px] h-[350px] rounded-full bg-fuchsia-500/10 dark:bg-fuchsia-500/5 blur-[95px] md:blur-[135px] top-[-50px] right-[-50px] animate-liquid-1" />
+        
+        {/* Blob 2: Cyan/blue glow */}
+        <div className="absolute w-[450px] h-[450px] rounded-full bg-[#4880FF]/16 dark:bg-[#4880FF]/8 blur-[105px] md:blur-[155px] bottom-[-100px] left-[-100px] animate-liquid-2" />
+        
+        {/* Blob 3: Amber/warm sun glow */}
+        <div className="absolute w-[320px] h-[320px] rounded-full bg-amber-400/12 dark:bg-amber-400/4 blur-[85px] md:blur-[125px] top-[40%] left-[30%] animate-liquid-3" />
+      </div>
+
+      <div className="relative z-10 min-h-screen flex flex-col">
+        <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
       {/* 1. Global Header Bar */}
       <header className={`sticky top-0 z-40 border-b flex h-16 items-center justify-between px-6 transition-all duration-150 shadow-sm ${
         isDarkMode 
@@ -978,12 +991,13 @@ export default function App() {
       </div>
 
       {/* 3. Global Footer bar */}
-      <footer className={`py-6 border-t font-sans text-xs text-center ${
+      <footer className={`py-6 border-t font-sans text-xs text-center z-10 ${
         isDarkMode ? 'bg-slate-950 border-slate-900 text-slate-500' : 'bg-slate-100 border-slate-200 text-slate-500'
       }`}>
         <p>© 2026 DSA Interview Prep Hub • Formulated to help you crack the interview loops cleanly.</p>
         <span className="block text-[10px] text-indigo-500 mt-1 font-mono uppercase">Designed offline • Fast persistent storage loaded</span>
       </footer>
+      </div>
     </div>
   );
 }

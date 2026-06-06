@@ -11,6 +11,119 @@
   --color-primary-hover: #3570F0;
 }
 
+/* Keyframes for the Liquid Glass drifting background blobs */
+@keyframes liquid-drift-1 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1) rotate(0deg);
+  }
+  33% {
+    transform: translate(30px, 40px) scale(1.15) rotate(120deg);
+  }
+  66% {
+    transform: translate(-20px, -30px) scale(0.9) rotate(240deg);
+  }
+}
+
+@keyframes liquid-drift-2 {
+  0%, 100% {
+    transform: translate(0, 0) scale(1.2) rotate(0deg);
+  }
+  50% {
+    transform: translate(-45px, 25px) scale(0.85) rotate(-180deg);
+  }
+}
+
+@keyframes liquid-drift-3 {
+  0%, 100% {
+    transform: translate(0, 0) scale(0.9) rotate(0deg);
+  }
+  45% {
+    transform: translate(35px, -35px) scale(1.2) rotate(90deg);
+  }
+}
+
+.animate-liquid-1 {
+  animation: liquid-drift-1 22s infinite alternate ease-in-out;
+}
+
+.animate-liquid-2 {
+  animation: liquid-drift-2 26s infinite alternate ease-in-out;
+}
+
+.animate-liquid-3 {
+  animation: liquid-drift-3 18s infinite alternate ease-in-out;
+}
+
+/* Global Glassmorphic Card, Header, and Aside overrides */
+.bg-white {
+  background-color: rgba(255, 255, 255, 0.18) !important; /* High transparency layout background */
+  backdrop-filter: blur(20px) saturate(145%);
+  -webkit-backdrop-filter: blur(20px) saturate(145%);
+  border: 1px solid rgba(72, 128, 255, 0.35) !important; /* Solid-enough highlighted blue outline to stand out */
+  box-shadow: 0 8px 32px 0 rgba(72, 128, 255, 0.05), inset 0 1px 2px rgba(255, 255, 255, 0.5);
+}
+
+.dark .bg-white {
+  background-color: rgba(18, 22, 38, 0.38) !important; /* Beautiful deep dark glass */
+  border: 1px solid rgba(72, 128, 255, 0.25) !important; /* Distinct highlighted outline */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+}
+
+.dark .bg-\[\#232738\] {
+  background-color: rgba(18, 22, 38, 0.38) !important;
+  backdrop-filter: blur(20px) saturate(135%);
+  -webkit-backdrop-filter: blur(20px) saturate(135%);
+  border: 1px solid rgba(72, 128, 255, 0.25) !important; /* Highlights with matching blue-indigo accent */
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.08);
+}
+
+header {
+  background-color: rgba(255, 255, 255, 0.25) !important;
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border-bottom: 1.5px solid rgba(72, 128, 255, 0.38) !important; /* Gorgeous glossy border line */
+  box-shadow: 0 4px 20px rgba(72, 128, 255, 0.04);
+}
+
+.dark header {
+  background-color: rgba(12, 14, 24, 0.45) !important;
+  border-bottom: 1.5px solid rgba(72, 128, 255, 0.25) !important; /* Outstanding dark glass border line */
+  box-shadow: 0 6px 24px rgba(0, 0, 0, 0.35);
+}
+
+aside {
+  background-color: rgba(255, 255, 255, 0.2) !important;
+  backdrop-filter: blur(24px) saturate(150%);
+  -webkit-backdrop-filter: blur(24px) saturate(150%);
+  border-right: 1.5px solid rgba(72, 128, 255, 0.32) !important; /* Perfect visual sidebar separator */
+}
+
+.dark aside {
+  background-color: rgba(12, 14, 24, 0.4) !important;
+  border-right: 1.5px solid rgba(72, 128, 255, 0.2) !important;
+}
+
+/* Elegant light/dark borders mapping */
+.border-\[\#F1F2F7\] {
+  border-color: rgba(72, 128, 255, 0.25) !important;
+}
+
+.dark .border-\[\#2C3148\] {
+  border-color: rgba(72, 128, 255, 0.18) !important;
+}
+
+.dark .border-\[\#2E344A\] {
+  border-color: rgba(72, 128, 255, 0.18) !important;
+}
+
+/* Thin soft outer boundaries for the Liquid Glass layouts */
+.glass-border-subtle {
+  border: 1px solid rgba(72, 128, 255, 0.32);
+}
+.dark .glass-border-subtle {
+  border: 1px solid rgba(72, 128, 255, 0.2);
+}
+
 /* Base custom styles to add top polish */
 ::-webkit-scrollbar {
   width: 6px;

@@ -91,16 +91,16 @@ export default function Dashboard({
   return (
     <div className="space-y-6">
       {/* Welcome Banner */}
-      <div className="bg-gradient-to-r from-[#4880FF] to-[#3570F0] text-white rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-md">
-        <div className="absolute right-0 top-0 -mt-12 -mr-12 w-64 h-64 bg-white/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="bg-gradient-to-r from-[#4880FF]/15 to-[#3570F0]/10 dark:from-[#4880FF]/15 dark:to-[#3570F0]/10 border border-[#4880FF]/40 dark:border-[#4880FF]/25 backdrop-blur-md rounded-2xl p-6 md:p-8 relative overflow-hidden shadow-sm">
+        <div className="absolute right-0 top-0 -mt-12 -mr-12 w-64 h-64 bg-[#4880FF]/10 rounded-full blur-3xl pointer-events-none animate-pulse-subtle" />
         <div className="relative z-10 max-w-2xl space-y-3">
-          <span className="bg-white/20 text-white text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider select-none">
+          <span className="bg-[#4880FF]/15 dark:bg-white/10 text-[#4880FF] dark:text-white text-[10px] px-3 py-1 rounded-full font-bold uppercase tracking-wider select-none border border-[#4880FF]/20 dark:border-white/10">
             DashStack Workspace • Premium DSA Portal
           </span>
-          <h2 className="text-3xl md:text-4xl font-sans font-black tracking-tight leading-tight text-white animate-fade-in">
+          <h2 className="text-3xl md:text-4xl font-sans font-black tracking-tight leading-tight text-slate-800 dark:text-white animate-fade-in">
             Elevate Your SDE Interviews inside the DSA Prep Hub
           </h2>
-          <p className="text-blue-50/95 text-xs md:text-sm leading-relaxed max-w-xl">
+          <p className="text-slate-600 dark:text-slate-350 text-xs md:text-sm leading-relaxed max-w-xl">
             Follow our interactive roadmap progress chart, visualize classic algorithmic patterns, practice curated questions, and execute fast SDE schedules.
           </p>
         </div>
