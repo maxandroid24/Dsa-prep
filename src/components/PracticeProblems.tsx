@@ -2,7 +2,8 @@ import { useState } from 'react';
 import { Problem, UserProgress } from '../types';
 import { getAllProblems } from '../data/problems';
 import { dsaTopics } from '../data/topics';
-import { Search, CheckCircle2, Circle, ExternalLink } from 'lucide-react';
+import { Search, CheckCircle2, Circle, ExternalLink, Code2 } from 'lucide-react';
+import InteractiveEditor from './InteractiveEditor';
 
 interface PracticeProblemsProps {
   progress: UserProgress;
@@ -19,6 +20,7 @@ export default function PracticeProblems({
   const [difficultyFilter, setDifficultyFilter] = useState<string>('All');
   const [topicFilter, setTopicFilter] = useState<string>('All');
   const [solvedFilter, setSolvedFilter] = useState<string>('All');
+  const [activeCodingProblem, setActiveCodingProblem] = useState<Problem | null>(null);
 
   // Load all 395 combined problems dynamically
   const allProblems = getAllProblems();
@@ -176,7 +178,14 @@ export default function PracticeProblems({
                 </div>
 
                 {/* Sub links to External Practice */}
-                <div className="flex gap-2 shrink-0 select-none font-sans justify-end md:self-center">
+                <div className="flex gap-2 shrink-0 select-none font-sans justify-end md:self-center items-center flex-wrap">
+                  <button
+                    onClick={() => setActiveCodingProblem(prob)}
+                    className="cursor-pointer bg-[#4880FF] hover:bg-[#3570F0] text-white text-xs font-bold py-1.5 px-3 rounded-lg flex items-center justify-center gap-1 shadow-sm transition hover:shadow"
+                  >
+                    <Code2 className="w-3.5 h-3.5" />
+                    <span>Practice Code</span>
+                  </button>
                   <a 
                     href={prob.leetcodeUrl} 
                     target="_blank" 
@@ -201,6 +210,15 @@ export default function PracticeProblems({
           })
         )}
       </div>
+
+      {activeCodingProblem && (
+        <InteractiveEditor
+          problem={activeCodingProblem}
+          onClose={() => setActiveCodingProblem(null)}
+          onMarkSolved={onToggleProblemSolved}
+          isSolved={progress.solvedProblems.includes(activeCodingProblem.id)}
+        />
+      )}
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { dsaTopics } from '../data/topics';
 import { getProblemsForTopic } from '../data/problems';
 import Visualizers from './Visualizers';
 import { Check, Clipboard, BookOpen, FileCode2, Code2, Trophy, Sparkles, ExternalLink } from 'lucide-react';
+import InteractiveEditor from './InteractiveEditor';
 
 interface TopicsViewProps {
   activeTopicId: string;
@@ -28,6 +29,7 @@ export default function TopicsView({
   const [activeLanguage, setActiveLanguage] = useState<'java' | 'kotlin' | 'python' | 'cpp'>('java');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeDifficultyFilter, setActiveDifficultyFilter] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Beginner');
+  const [activeCodingProblem, setActiveCodingProblem] = useState<any>(null);
 
   // Load active topic
   const topic = dsaTopics.find(t => t.id === activeTopicId) || dsaTopics[0];
@@ -403,7 +405,15 @@ export default function TopicsView({
                       </div>
 
                       {/* External Practice Links */}
-                      <div className="flex flex-row md:flex-col gap-2 shrink-0 select-none font-sans md:self-center">
+                      <div className="flex flex-row md:flex-col gap-2 shrink-0 select-none font-sans md:self-center items-center md:items-stretch">
+                        <button
+                          onClick={() => setActiveCodingProblem(prob)}
+                          className="cursor-pointer bg-[#4880FF] hover:bg-[#3570F0] text-white text-xs font-bold py-1.5 px-3.5 rounded-lg flex items-center justify-center gap-1.5 shadow-sm transition hover:shadow"
+                        >
+                          <Code2 className="w-3.5 h-3.5" />
+                          <span>Practice Code</span>
+                        </button>
+
                         <a 
                           href={prob.leetcodeUrl}
                           target="_blank"
@@ -432,6 +442,15 @@ export default function TopicsView({
           </div>
         )}
       </div>
+
+      {activeCodingProblem && (
+        <InteractiveEditor
+          problem={activeCodingProblem}
+          onClose={() => setActiveCodingProblem(null)}
+          onMarkSolved={onToggleProblemSolved}
+          isSolved={progress.solvedProblems.includes(activeCodingProblem.id)}
+        />
+      )}
     </div>
   );
 }
