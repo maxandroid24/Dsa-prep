@@ -67,6 +67,7 @@ export interface UserProgress {
   leetcodeUsername?: string;
   leetcodeSolvedProblems?: { [titleSlug: string]: string }; // titleSlug -> completion ISO string or timestamp
   maxAgeDays?: number; // Previous days limit to consider done (e.g. 90, 180, etc.), undefined/all-time if unset
+  problemNotes?: { [problemId: string]: string }; // problemId -> notes content
 }
 
 export interface SDEPlanDay {

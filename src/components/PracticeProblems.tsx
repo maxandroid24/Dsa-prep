@@ -2,25 +2,54 @@ import { useState } from 'react';
 import { Problem, UserProgress } from '../types';
 import { getAllProblems } from '../data/problems';
 import { dsaTopics } from '../data/topics';
-import { Search, CheckCircle2, Circle, ExternalLink, Code2 } from 'lucide-react';
+import { Search, CheckCircle2, Circle, ExternalLink, Code2, FileText, Check } from 'lucide-react';
 import InteractiveEditor from './InteractiveEditor';
 
 interface PracticeProblemsProps {
   progress: UserProgress;
   onToggleProblemSolved: (problemId: string) => void;
   onNavigateToTopic: (topicId: string) => void;
+  onSaveNotes: (problemId: string, notes: string) => void;
 }
 
 export default function PracticeProblems({
   progress,
   onToggleProblemSolved,
-  onNavigateToTopic
+  onNavigateToTopic,
+  onSaveNotes
 }: PracticeProblemsProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('All');
   const [topicFilter, setTopicFilter] = useState<string>('All');
   const [solvedFilter, setSolvedFilter] = useState<string>('All');
   const [activeCodingProblem, setActiveCodingProblem] = useState<Problem | null>(null);
+
+  // Keep local draft state for notes currently being edited to avoid full parent re-renders on every keystroke
+  const [editingNotes, setEditingNotes] = useState<{[id: string]: string}>({});
+  const [savedStatus, setSavedStatus] = useState<{[id: string]: boolean}>({});
+
+  const getProblemNote = (probId: string) => {
+    if (editingNotes[probId] !== undefined) {
+      return editingNotes[probId];
+    }
+    return progress.problemNotes?.[probId] || '';
+  };
+
+  const handleNoteChange = (probId: string, text: string) => {
+    setEditingNotes(prev => ({ ...prev, [probId]: text }));
+    if (savedStatus[probId]) {
+      setSavedStatus(prev => ({ ...prev, [probId]: false }));
+    }
+  };
+
+  const handleSaveNote = (probId: string) => {
+    const text = editingNotes[probId] !== undefined ? editingNotes[probId] : (progress.problemNotes?.[probId] || '');
+    onSaveNotes(probId, text);
+    setSavedStatus(prev => ({ ...prev, [probId]: true }));
+    setTimeout(() => {
+      setSavedStatus(prev => ({ ...prev, [probId]: false }));
+    }, 2500);
+  };
 
   // Load all 395 combined problems dynamically
   const allProblems = getAllProblems();
@@ -170,9 +199,64 @@ export default function PracticeProblems({
 
                     <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed max-w-3xl font-sans mt-2">{prob.explanation}</p>
                     
-                    <div className="flex gap-4 text-[10px] font-mono text-slate-400 mt-2">
+                    <div className="flex gap-4 text-[10px] font-mono text-slate-400 mt-2 pb-3">
                       <span>Time Complexity: <strong className="text-[#00B69B]">{prob.timeComplexity}</strong></span>
                       <span>Space Complexity: <strong className="text-[#4880FF]">{prob.spaceComplexity}</strong></span>
+                    </div>
+
+                    {/* Integrated My Notes container */}
+                    <div className="mt-4 pt-3.5 border-t border-slate-100 dark:border-slate-800/60 max-w-3xl">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2 text-xs font-bold text-slate-700 dark:text-slate-300">
+                          <FileText className="w-3.5 h-3.5 text-[#4880FF]" />
+                          <span>My Notes & Revision Takeaways</span>
+                          {progress.problemNotes?.[prob.id] && (
+                            <span className="bg-[#4880FF]/10 text-[#4880FF] text-[9px] px-1.5 py-0.5 rounded-full font-sans font-semibold">
+                              Saved Takeaway
+                            </span>
+                          )}
+                        </div>
+                        {savedStatus[prob.id] && (
+                          <span className="text-[10px] text-[#00B69B] font-bold flex items-center gap-1 animate-pulse">
+                            <Check className="w-3 h-3 stroke-[2.5px]" /> Note saved!
+                          </span>
+                        )}
+                      </div>
+                      <div className="relative">
+                        <textarea
+                          value={getProblemNote(prob.id)}
+                          onChange={(e) => handleNoteChange(prob.id, e.target.value)}
+                          placeholder="Type any text snippets, revision pointers, pseudocode, or key takeaways for this problem..."
+                          className="w-full text-xs p-3 rounded-xl border border-slate-200 dark:border-slate-800/80 bg-slate-50/40 dark:bg-[#1B1E2D]/40 text-slate-700 dark:text-slate-300 placeholder-slate-400/80 focus:outline-none focus:ring-1 focus:ring-[#4880FF]/50 focus:border-[#4880FF]/50 transition duration-150 resize-y min-h-[60px]"
+                        />
+                        <div className="flex justify-end gap-2 mt-2">
+                          {editingNotes[prob.id] !== undefined && editingNotes[prob.id] !== (progress.problemNotes?.[prob.id] || '') && (
+                            <button
+                              onClick={() => {
+                                setEditingNotes(prev => {
+                                  const nextObj = { ...prev };
+                                  delete nextObj[prob.id];
+                                  return nextObj;
+                                });
+                              }}
+                              className="cursor-pointer text-[10px] text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition font-sans px-2.5 py-1 font-semibold"
+                            >
+                              Cancel
+                            </button>
+                          )}
+                          <button
+                            onClick={() => handleSaveNote(prob.id)}
+                            disabled={editingNotes[prob.id] === undefined || editingNotes[prob.id] === (progress.problemNotes?.[prob.id] || '')}
+                            className={`cursor-pointer text-[10px] select-none font-bold py-1 px-3.5 rounded-lg flex items-center justify-center gap-1 transition ${
+                              editingNotes[prob.id] !== undefined && editingNotes[prob.id] !== (progress.problemNotes?.[prob.id] || '')
+                                ? 'bg-[#4880FF] hover:bg-[#3570F0] text-white shadow-sm'
+                                : 'bg-slate-100 dark:bg-slate-800/60 text-slate-400 dark:text-slate-600 cursor-not-allowed'
+                            }`}
+                          >
+                            <span>Save Note</span>
+                          </button>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>

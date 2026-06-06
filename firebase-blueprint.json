@@ -37,6 +37,10 @@
         "revisionStatus": {
           "type": "object",
           "description": "Dictionary of revision status per topic ID."
+        },
+        "problemNotes": {
+          "type": "object",
+          "description": "Dictionary mapping problem ID to user-saved notes content."
         }
       },
       "required": ["uid", "email", "completedTopics", "solvedProblems", "revisionStreak", "lastActiveDate"]

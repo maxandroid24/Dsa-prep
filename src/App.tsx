@@ -420,6 +420,18 @@ export default function App() {
     saveProgress(updated);
   };
 
+  const handleSaveNotes = (problemId: string, notes: string) => {
+    const updatedNotes = {
+      ...(progress.problemNotes || {}),
+      [problemId]: notes
+    };
+    const updated = {
+      ...progress,
+      problemNotes: updatedNotes
+    };
+    saveProgress(updated);
+  };
+
   // Compute global searched elements inline
   const getSearchResults = () => {
     if (!globalSearch.trim()) return [];
@@ -997,6 +1009,7 @@ export default function App() {
               onNavigateToTopic={(id) => handleNavigate('topics', id)}
               onMarkWeakArea={handleMarkWeakArea}
               onUpdateRevisionStatus={handleUpdateRevisionStatus}
+              onSaveNotes={handleSaveNotes}
             />
           )}
 
@@ -1005,6 +1018,7 @@ export default function App() {
               progress={getFilteredProgress(progress)}
               onToggleProblemSolved={handleToggleProblemSolved}
               onNavigateToTopic={(id) => handleNavigate('topics', id)}
+              onSaveNotes={handleSaveNotes}
             />
           )}
 

@@ -20,6 +20,7 @@ export async function fetchUserProgress(uid: string): Promise<UserProgress | nul
         leetcodeUsername: data.leetcodeUsername || '',
         leetcodeSolvedProblems: data.leetcodeSolvedProblems || {},
         maxAgeDays: data.maxAgeDays !== undefined ? data.maxAgeDays : undefined,
+        problemNotes: data.problemNotes || {},
       };
     }
     return null;
@@ -44,6 +45,7 @@ export async function saveUserProgress(uid: string, email: string, progress: Use
     leetcodeUsername: progress.leetcodeUsername || '',
     leetcodeSolvedProblems: progress.leetcodeSolvedProblems || {},
     maxAgeDays: progress.maxAgeDays !== undefined ? progress.maxAgeDays : null,
+    problemNotes: progress.problemNotes || {},
   };
   try {
     await setDoc(docRef, payload);
