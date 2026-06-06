@@ -102,9 +102,9 @@ function LinkedListVisualizer() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-slate-800 dark:text-slate-100">
       {/* Simulation Box */}
-      <div className="w-full h-48 bg-slate-950 rounded-lg flex items-center justify-start px-6 gap-2 overflow-x-auto border border-slate-800 scrollbar-thin scrollbar-thumb-slate-800">
+      <div className="w-full h-48 bg-slate-50 dark:bg-[#121829] rounded-lg flex items-center justify-start px-6 gap-2 overflow-x-auto border border-slate-200 dark:border-[#202c4c] scrollbar-thin scrollbar-thumb-slate-200 dark:scrollbar-thumb-[#202c4c]">
         {list.length === 0 ? (
           <div className="text-slate-500 font-mono text-sm mx-auto text-center">
             List is empty. Insert elements below.
@@ -115,8 +115,8 @@ function LinkedListVisualizer() {
               <div 
                 className={`relative flex items-center justify-center w-16 h-16 rounded-lg border-2 font-mono text-lg font-bold transition-all duration-300 shrink-0 ${
                   activeIndex === idx 
-                    ? 'bg-emerald-950 border-emerald-400 text-emerald-300 scale-105 shadow-lg shadow-emerald-950' 
-                    : 'bg-slate-900 border-slate-700 text-slate-200'
+                    ? 'bg-emerald-50 dark:bg-emerald-950 border-emerald-500 text-emerald-800 dark:text-emerald-300 scale-105 shadow-lg shadow-emerald-500/10' 
+                    : 'bg-white dark:bg-[#1e293b] border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-100'
                 }`}
               >
                 {val}
@@ -133,8 +133,8 @@ function LinkedListVisualizer() {
               
               {idx < list.length - 1 && (
                 <div className="flex flex-col items-center shrink-0">
-                  <ArrowRight className="w-6 h-6 text-slate-500 animate-pulse" />
-                  <span className="text-[9px] font-mono text-slate-600">next</span>
+                  <ArrowRight className="w-6 h-6 text-slate-400 dark:text-slate-600 animate-pulse" />
+                  <span className="text-[9px] font-mono text-slate-500 dark:text-slate-500">next</span>
                 </div>
               )}
             </React.Fragment>
@@ -150,7 +150,7 @@ function LinkedListVisualizer() {
             placeholder="Val" 
             value={newValue} 
             onChange={e => setNewValue(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-100 text-sm font-mono focus:border-emerald-500 focus:outline-none"
+            className="w-full bg-white dark:bg-[#0f1322] border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-100 text-sm font-mono focus:border-emerald-500 focus:outline-none"
           />
           <button 
             onClick={handleAdd}
@@ -166,7 +166,7 @@ function LinkedListVisualizer() {
             placeholder="Search" 
             value={searchVal} 
             onChange={e => setSearchVal(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-100 text-sm font-mono focus:border-emerald-500 focus:outline-none"
+            className="w-full bg-white dark:bg-[#0f1322] border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-100 text-sm font-mono focus:border-emerald-500 focus:outline-none"
           />
           <button 
             onClick={handleSearch}
@@ -178,21 +178,21 @@ function LinkedListVisualizer() {
 
         <button 
           onClick={handleReverse}
-          className="bg-indigo-600 hover:bg-indigo-500 text-white px-4 py-1.5 rounded text-xs font-semibold flex items-center justify-center gap-1.5"
+          className="bg-indigo-600 hover:bg-indigo-505 text-white px-4 py-1.5 rounded text-xs font-semibold flex items-center justify-center gap-1.5"
         >
           <RotateCcw className="w-3.5 h-3.5" /> Reverse pointers
         </button>
 
         <button 
           onClick={() => { setList([5, 10, 15, 20]); setStatusText('Reset completed.'); setActiveIndex(null); }}
-          className="border border-slate-700 hover:bg-slate-800 text-slate-300 px-4 py-1.5 rounded text-xs font-semibold"
+          className="border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-1.5 rounded text-xs font-semibold"
         >
           Reset List
         </button>
       </div>
 
-      <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
-        <strong className="text-emerald-400">Logger:</strong> {statusText}
+      <p className="text-xs font-mono text-slate-600 dark:text-slate-400 bg-slate-100/60 dark:bg-[#11162d] p-2.5 rounded border border-slate-200 dark:border-[#202c4c]">
+        <strong className="text-emerald-600 dark:text-emerald-400">Logger:</strong> {statusText}
       </p>
     </div>
   );
@@ -372,9 +372,9 @@ function BinaryTreeVisualizer() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-slate-800 dark:text-slate-100">
       {/* Simulation Frame */}
-      <div className="w-full h-72 bg-slate-950 rounded-lg border border-slate-800 relative overflow-hidden flex items-center justify-center">
+      <div className="w-full h-72 bg-slate-50 dark:bg-[#121829] rounded-lg border border-slate-200 dark:border-[#202c4c] relative overflow-hidden flex items-center justify-center">
         {rootVal === null ? (
           <div className="text-slate-500 font-mono text-sm">BST is empty. Please insert elements below.</div>
         ) : (
@@ -394,7 +394,7 @@ function BinaryTreeVisualizer() {
                       y1={fromCoords.y}
                       x2={coords[node.left].x}
                       y2={coords[node.left].y}
-                      stroke="#475569"
+                      stroke="#94a3b8"
                       strokeWidth="2"
                     />
                   )}
@@ -404,7 +404,7 @@ function BinaryTreeVisualizer() {
                       y1={fromCoords.y}
                       x2={coords[node.right].x}
                       y2={coords[node.right].y}
-                      stroke="#475569"
+                      stroke="#94a3b8"
                       strokeWidth="2"
                     />
                   )}
@@ -427,18 +427,21 @@ function BinaryTreeVisualizer() {
                     r="16"
                     className={`transition-all duration-300 ${
                       isActive
-                        ? 'fill-indigo-800 stroke-indigo-300 stroke-2 ring-2 scale-110'
+                        ? 'fill-indigo-600 stroke-indigo-300 stroke-2 ring-2 scale-110'
                         : isVisited
-                        ? 'fill-emerald-950 stroke-emerald-500 stroke-2'
-                        : 'fill-slate-900 stroke-slate-700'
+                        ? 'fill-emerald-500 dark:fill-emerald-900 stroke-emerald-600 stroke-2'
+                        : 'fill-white dark:fill-[#1e293b] stroke-slate-350 dark:stroke-slate-700'
                     }`}
                   />
                   <text
                     x={nodeCoords.x}
                     y={nodeCoords.y + 4}
                     textAnchor="middle"
-                    fill="#f8fafc"
-                    className="font-mono text-[10px] font-bold"
+                    className={`font-mono text-[10px] font-bold ${
+                      isActive || isVisited 
+                        ? 'fill-white' 
+                        : 'fill-slate-800 dark:fill-slate-100'
+                    }`}
                   >
                     {val}
                   </text>
@@ -453,25 +456,25 @@ function BinaryTreeVisualizer() {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         <button
           onClick={() => startTraversal('pre')}
-          className="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 px-3 py-1.5 rounded text-xs font-semibold"
+          className="border border-slate-300 dark:border-slate-705 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-205 hover:bg-slate-100 dark:hover:bg-slate-805 px-3 py-1.5 rounded text-xs font-semibold"
         >
           Preorder DFS
         </button>
         <button
           onClick={() => startTraversal('in')}
-          className="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 px-3 py-1.5 rounded text-xs font-semibold"
+          className="border border-slate-300 dark:border-slate-705 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-205 hover:bg-slate-100 dark:hover:bg-slate-805 px-3 py-1.5 rounded text-xs font-semibold"
         >
           Inorder DFS
         </button>
         <button
           onClick={() => startTraversal('post')}
-          className="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 px-3 py-1.5 rounded text-xs font-semibold"
+          className="border border-slate-300 dark:border-slate-705 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-205 hover:bg-slate-100 dark:hover:bg-slate-805 px-3 py-1.5 rounded text-xs font-semibold"
         >
           Postorder DFS
         </button>
         <button
           onClick={() => startTraversal('bfs')}
-          className="bg-slate-900 hover:bg-slate-800 text-slate-200 border border-slate-700 px-3 py-1.5 rounded text-xs font-semibold"
+          className="border border-slate-300 dark:border-slate-705 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-205 hover:bg-slate-100 dark:hover:bg-slate-805 px-3 py-1.5 rounded text-xs font-semibold"
         >
           Level-Order BFS
         </button>
@@ -485,11 +488,11 @@ function BinaryTreeVisualizer() {
             placeholder="Val"
             value={insertVal}
             onChange={e => setInsertVal(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-805 rounded px-2 text-slate-100 text-xs font-mono focus:border-indigo-500 focus:outline-none"
+            className="w-full bg-white dark:bg-[#0f1322] border border-slate-300 dark:border-slate-800 rounded px-2.5 text-slate-800 dark:text-slate-100 text-xs font-mono focus:border-indigo-500 focus:outline-none"
           />
           <button
             onClick={handleInsert}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded text-xs font-semibold shrink-0"
+            className="bg-indigo-600 hover:bg-indigo-505 text-white px-3 py-1 rounded text-xs font-semibold shrink-0"
           >
             InsertBST
           </button>
@@ -501,7 +504,7 @@ function BinaryTreeVisualizer() {
           className={`px-4 py-1.5 rounded text-xs font-bold transition flex items-center justify-center gap-1.5 ${
             simIndex >= 0
               ? 'bg-emerald-600 hover:bg-emerald-500 text-white animate-pulse'
-              : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-850'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-850'
           }`}
         >
           <Play className="w-3.5 h-3.5" /> Next Step
@@ -509,14 +512,14 @@ function BinaryTreeVisualizer() {
 
         <button
           onClick={handleReset}
-          className="border border-slate-750 hover:bg-slate-800 text-slate-300 px-4 py-1.5 rounded text-xs font-semibold"
+          className="border border-slate-300 dark:border-slate-750 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-1.5 rounded text-xs font-semibold"
         >
           Reset BST
         </button>
       </div>
 
-      <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
-        <strong className="text-indigo-400">Logger:</strong> {statusText}
+      <p className="text-xs font-mono text-slate-600 dark:text-slate-400 bg-slate-100/60 dark:bg-[#11162d] p-2.5 rounded border border-slate-200 dark:border-[#202c4c]">
+        <strong className="text-indigo-600 dark:text-indigo-400">Logger:</strong> {statusText}
       </p>
     </div>
   );
@@ -621,9 +624,9 @@ function HeapVisualizer() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-slate-800 dark:text-slate-100">
       {/* Dynamic Binary Heap Tree Visualization */}
-      <div className="w-full h-56 bg-slate-950 rounded-lg border border-slate-800 relative overflow-hidden flex items-center justify-center">
+      <div className="w-full h-56 bg-slate-50 dark:bg-[#121829] rounded-lg border border-slate-200 dark:border-[#202c4c] relative overflow-hidden flex items-center justify-center">
         {heap.length === 0 ? (
           <div className="text-slate-500 font-mono text-sm">Heap is empty. Insert elements below.</div>
         ) : (
@@ -642,7 +645,7 @@ function HeapVisualizer() {
                       y1={coords.y}
                       x2={getHeapNodeCoords(left, heap.length).x}
                       y2={getHeapNodeCoords(left, heap.length).y}
-                      stroke="#475569"
+                      stroke="#94a3b8"
                       strokeWidth="2"
                     />
                   )}
@@ -652,7 +655,7 @@ function HeapVisualizer() {
                       y1={coords.y}
                       x2={getHeapNodeCoords(right, heap.length).x}
                       y2={getHeapNodeCoords(right, heap.length).y}
-                      stroke="#475569"
+                      stroke="#94a3b8"
                       strokeWidth="2"
                     />
                   )}
@@ -673,16 +676,19 @@ function HeapVisualizer() {
                     r="15"
                     className={`transition-all duration-300 ${
                       isSwapping
-                        ? 'fill-amber-800 stroke-amber-300 stroke-2 ring-2 scale-110 animate-pulse'
-                        : 'fill-slate-900 stroke-slate-700'
+                        ? 'fill-amber-500 stroke-amber-300 stroke-2 ring-2 scale-110 animate-pulse'
+                        : 'fill-white dark:fill-[#1e293b] stroke-slate-350 dark:stroke-slate-700'
                     }`}
                   />
                   <text
                     x={coords.x}
                     y={coords.y + 4}
                     textAnchor="middle"
-                    fill="#f8fafc"
-                    className="font-mono text-[9px] font-bold"
+                    className={`font-mono text-[9px] font-bold ${
+                      isSwapping 
+                        ? 'fill-white' 
+                        : 'fill-slate-800 dark:fill-slate-100'
+                    }`}
                   >
                     {val}
                   </text>
@@ -690,8 +696,7 @@ function HeapVisualizer() {
                     x={coords.x}
                     y={coords.y - 17}
                     textAnchor="middle"
-                    fill="#64748b"
-                    className="font-mono text-[7px]"
+                    className="font-mono text-[7px] fill-slate-400 dark:fill-slate-500"
                   >
                     idx:{idx}
                   </text>
@@ -703,7 +708,7 @@ function HeapVisualizer() {
       </div>
 
       {/* Vector Visualization Panel */}
-      <div className="w-full bg-slate-950 rounded-lg flex flex-col items-center justify-center p-3 border border-slate-800">
+      <div className="w-full bg-slate-50 dark:bg-[#121829] rounded-lg flex flex-col items-center justify-center p-3 border border-slate-200 dark:border-[#202c4c]">
         <span className="text-[10px] text-slate-500 font-mono mb-2 uppercase tracking-wider">Backing Array Representation</span>
         <div className="flex gap-1.5 overflow-x-auto max-w-full">
           {heap.map((v, i) => (
@@ -711,12 +716,12 @@ function HeapVisualizer() {
               key={i} 
               className={`w-11 h-11 rounded border flex flex-col items-center justify-center font-mono ${
                 swappingIndices.includes(i) 
-                  ? 'bg-amber-950 text-amber-300 border-amber-500 scale-105' 
-                  : 'bg-slate-900 text-slate-100 border-slate-700'
+                  ? 'bg-amber-50 dark:bg-amber-950 text-amber-600 dark:text-amber-300 border-amber-500 scale-105' 
+                  : 'bg-white dark:bg-[#1e293b] text-slate-800 dark:text-slate-100 border-slate-300 dark:border-slate-700'
               }`}
             >
               <span className="text-xs font-bold">{v}</span>
-              <span className="text-[8px] text-slate-505">[{i}]</span>
+              <span className="text-[8px] text-slate-400 dark:text-slate-500">[{i}]</span>
             </div>
           ))}
         </div>
@@ -730,7 +735,7 @@ function HeapVisualizer() {
             placeholder="Heap Val" 
             value={inputValue} 
             onChange={e => setInputValue(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-slate-100 text-sm font-mono focus:border-amber-500 focus:outline-none"
+            className="w-full bg-white dark:bg-[#0f1322] border border-slate-300 dark:border-slate-800 rounded px-2.5 py-1 text-slate-800 dark:text-slate-100 text-sm font-mono focus:border-amber-500 focus:outline-none"
           />
           <button 
             onClick={handlePush}
@@ -749,14 +754,14 @@ function HeapVisualizer() {
 
         <button 
           onClick={() => { setHeap([15, 20, 30, 45, 55, 60]); setStatusText('Reset completed.'); setSwappingIndices([]); }}
-          className="border border-slate-750 hover:bg-slate-800 text-slate-300 px-4 py-1.5 rounded text-xs font-bold"
+          className="border border-slate-300 dark:border-slate-750 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-705 dark:text-slate-300 px-4 py-1.5 rounded text-xs font-bold"
         >
           Reset Heap Array
         </button>
       </div>
 
-      <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
-        <strong className="text-amber-400 border-none">Logger:</strong> {statusText}
+      <p className="text-xs font-mono text-slate-600 dark:text-slate-400 bg-slate-100/60 dark:bg-[#11162d] p-2.5 rounded border border-slate-200 dark:border-[#202c4c]">
+        <strong className="text-amber-600 dark:text-amber-405 border-none">Logger:</strong> {statusText}
       </p>
     </div>
   );
@@ -941,9 +946,9 @@ function GraphVisualizer() {
   const currentStepStructure = simIndex >= 0 && simIndex < simSteps.length ? simSteps[simIndex].structure : [];
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-slate-800 dark:text-slate-100">
       {/* Simulation Frame */}
-      <div className="w-full h-64 bg-slate-950 rounded-lg border border-slate-800 relative overflow-hidden flex items-center justify-center">
+      <div className="w-full h-64 bg-slate-50 dark:bg-[#121829] rounded-lg border border-slate-200 dark:border-[#202c4c] relative overflow-hidden flex items-center justify-center">
         <svg className="w-full h-full">
           {/* Draw connecting edges */}
           {edges.map((e, idx) => {
@@ -959,9 +964,9 @@ function GraphVisualizer() {
                 y1={start.y}
                 x2={end.x}
                 y2={end.y}
-                stroke={isVisitedEdge ? '#10b981' : '#475569'}
+                stroke={isVisitedEdge ? '#10b981' : '#cbd5e1'}
                 strokeWidth={isVisitedEdge ? '3' : '2'}
-                className="transition-all duration-300"
+                className="transition-all duration-350"
               />
             );
           })}
@@ -978,20 +983,23 @@ function GraphVisualizer() {
                   cx={n.x}
                   cy={n.y}
                   r="18"
-                  className={`transition-all duration-300 ${
+                  className={`transition-all duration-350 ${
                     isActive
-                      ? 'fill-indigo-805 stroke-indigo-400 stroke-2 ring-2 scale-110'
+                      ? 'fill-indigo-600 stroke-indigo-400 stroke-2 ring-2 ring-indigo-400/25 scale-110'
                       : isVisited
-                      ? 'fill-emerald-900 stroke-emerald-600'
-                      : 'fill-slate-900 stroke-slate-700'
+                      ? 'fill-emerald-500 dark:fill-emerald-900 stroke-emerald-600 stroke-2'
+                      : 'fill-white dark:fill-[#1e293b] stroke-slate-350 dark:stroke-slate-700'
                   }`}
                 />
                 <text
                   x={n.x}
                   y={parseFloat(n.y) + 1.2 + '%'}
                   textAnchor="middle"
-                  fill="#ffffff"
-                  className="font-mono text-xs font-bold pointer-events-none select-none"
+                  className={`font-mono text-xs font-black pointer-events-none select-none ${
+                    isActive || isVisited 
+                      ? 'fill-white' 
+                      : 'fill-slate-800 dark:fill-slate-100'
+                  }`}
                 >
                   {nodeId}
                 </text>
@@ -1005,13 +1013,13 @@ function GraphVisualizer() {
       <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
         <button
           onClick={() => startTraversal('BFS')}
-          className="bg-slate-900 hover:bg-slate-800 border border-slate-705 text-slate-200 px-3 py-1.5 rounded text-xs font-semibold"
+          className="border border-slate-300 dark:border-slate-705 bg-white dark:bg-slate-900 text-slate-750 dark:text-slate-205 hover:bg-slate-100 dark:hover:bg-slate-805 px-3 py-1.5 rounded text-xs font-semibold"
         >
           Init BFS Traversal
         </button>
         <button
           onClick={() => startTraversal('DFS')}
-          className="bg-slate-900 hover:bg-slate-800 border border-slate-705 text-slate-200 px-3 py-1.5 rounded text-xs font-semibold"
+          className="border border-slate-300 dark:border-slate-705 bg-white dark:bg-slate-900 text-slate-750 dark:text-slate-205 hover:bg-slate-100 dark:hover:bg-slate-805 px-3 py-1.5 rounded text-xs font-semibold"
         >
           Init DFS Traversal
         </button>
@@ -1020,8 +1028,8 @@ function GraphVisualizer() {
           disabled={simIndex < 0}
           className={`px-3 py-1.5 rounded text-xs font-bold transition flex items-center justify-center gap-1 ${
             simIndex >= 0
-              ? 'bg-emerald-650 hover:bg-emerald-600 text-white animate-pulse'
-              : 'bg-slate-800 text-slate-500 cursor-not-allowed border border-slate-850'
+              ? 'bg-emerald-600 hover:bg-emerald-500 text-white animate-pulse'
+              : 'bg-slate-100 dark:bg-slate-800 text-slate-400 dark:text-slate-500 cursor-not-allowed border border-slate-200 dark:border-slate-850'
           }`}
         >
           <Play className="w-3 h-3" /> Next Step
@@ -1030,8 +1038,8 @@ function GraphVisualizer() {
 
       {/* Dynamic Queue/Stack visual frame */}
       {simIndex >= 0 && (
-        <div className="bg-slate-950 p-2.5 rounded border border-slate-805 flex flex-col justify-start gap-1">
-          <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-indigo-400">
+        <div className="bg-slate-50 dark:bg-[#11162d] p-2.5 rounded border border-slate-200 dark:border-[#202c4c] flex flex-col justify-start gap-1">
+          <span className="text-[10px] uppercase font-mono font-bold tracking-wider text-indigo-600 dark:text-indigo-400">
             Active {simType === 'BFS' ? 'Queue (FIFO)' : 'Stack (LIFO)'} Structure Snapshot:
           </span>
           <div className="flex gap-1.5 overflow-x-auto">
@@ -1040,8 +1048,8 @@ function GraphVisualizer() {
                 key={i}
                 className={`w-9 h-9 rounded border flex items-center justify-center font-mono font-bold text-xs ${
                   (simType === 'BFS' && i === 0) || (simType === 'DFS' && i === currentStepStructure.length - 1)
-                    ? 'bg-indigo-950 border-indigo-500 text-indigo-300 ring-1 scale-105'
-                    : 'bg-slate-900 border-slate-750 text-slate-350'
+                    ? 'bg-indigo-50 dark:bg-indigo-950 border-indigo-505 text-indigo-600 dark:text-indigo-300 ring-1 scale-105 font-black'
+                    : 'bg-white dark:bg-[#1e293b] border-slate-300 dark:border-slate-750 text-slate-800 dark:text-slate-350'
                 }`}
               >
                 {el}
@@ -1057,7 +1065,7 @@ function GraphVisualizer() {
       )}
 
       {/* Inputs to build graphs dynamically */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-900/40 p-3 rounded-lg border border-slate-800/60">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50/50 dark:bg-slate-900/40 p-3 rounded-lg border border-slate-200/80 dark:border-slate-800/60">
         {/* Node controls */}
         <div className="space-y-2">
           <span className="text-[10px] uppercase font-mono text-slate-500 font-bold block">Add Custom Node label</span>
@@ -1068,7 +1076,7 @@ function GraphVisualizer() {
               placeholder="Label (e.g. F)"
               value={newNodeName}
               onChange={e => setNewNodeName(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-100 text-xs font-mono focus:border-indigo-500 focus:outline-none"
+              className="w-full bg-white dark:bg-[#0f1322] border border-slate-305 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-100 text-xs font-mono focus:border-indigo-500 focus:outline-none"
             />
             <button
               onClick={handleAddNode}
@@ -1089,16 +1097,16 @@ function GraphVisualizer() {
               placeholder="U"
               value={newEdgeU}
               onChange={e => setNewEdgeU(e.target.value)}
-              className="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-100 text-xs font-mono text-center focus:border-indigo-500 focus:outline-none"
+              className="w-20 bg-white dark:bg-[#0f1322] border border-slate-305 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-100 text-xs font-mono text-center focus:border-indigo-500 focus:outline-none"
             />
-            <span className="text-slate-500 text-sm font-bold flex items-center">to</span>
+            <span className="text-slate-400 dark:text-slate-500 text-sm font-bold flex items-center">to</span>
             <input
               type="text"
               maxLength={2}
               placeholder="V"
               value={newEdgeV}
               onChange={e => setNewEdgeV(e.target.value)}
-              className="w-20 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-100 text-xs font-mono text-center focus:border-indigo-500 focus:outline-none"
+              className="w-20 bg-white dark:bg-[#0f1322] border border-slate-305 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-100 text-xs font-mono text-center focus:border-indigo-500 focus:outline-none"
             />
             <button
               onClick={handleAddEdge}
@@ -1114,14 +1122,14 @@ function GraphVisualizer() {
       <div className="flex justify-end">
         <button
           onClick={handleReset}
-          className="border border-slate-750 hover:bg-slate-850 text-slate-350 px-4 py-1.5 rounded text-xs font-semibold"
+          className="border border-slate-300 dark:border-slate-750 hover:bg-slate-100 dark:hover:bg-slate-855 text-slate-700 dark:text-slate-300 px-4 py-1.5 rounded text-xs font-semibold"
         >
           Reset Graph Default
         </button>
       </div>
 
-      <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
-        <strong className="text-emerald-400 border-none">Logger:</strong> {statusText}
+      <p className="text-xs font-mono text-slate-600 dark:text-slate-400 bg-slate-100/60 dark:bg-[#11162d] p-2.5 rounded border border-slate-200 dark:border-[#202c4c]">
+        <strong className="text-emerald-600 dark:text-emerald-400">Logger:</strong> {statusText}
       </p>
     </div>
   );
@@ -1273,15 +1281,15 @@ function TrieVisualizer() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-slate-800 dark:text-slate-100">
       {/* Simulation layout */}
-      <div className="w-full h-64 bg-slate-950 rounded-lg border border-slate-800 relative overflow-hidden flex flex-col justify-between p-3">
+      <div className="w-full h-64 bg-slate-50 dark:bg-[#121829] rounded-lg border border-slate-200 dark:border-[#202c4c] relative overflow-hidden flex flex-col justify-between p-3">
         <div className="flex gap-1.5 flex-wrap">
           <span className="text-[10px] uppercase text-slate-500 font-bold font-mono self-center">Current Words:</span>
           {words.map((w, i) => (
             <span 
               key={i} 
-              className="bg-slate-900 border border-slate-750 text-slate-300 px-1.5 py-0.5 rounded text-[10px] font-mono"
+              className="bg-white dark:bg-[#1e293b] border border-slate-250 dark:border-slate-750 text-slate-705 dark:text-slate-300 px-1.5 py-0.5 rounded text-[10px] font-mono"
             >
               {w}
             </span>
@@ -1299,7 +1307,7 @@ function TrieVisualizer() {
                 y1={l.fromY}
                 x2={l.toX}
                 y2={l.toY}
-                stroke="#334155"
+                stroke="#cbd5e1"
                 strokeWidth="1.5"
               />
             ))}
@@ -1317,18 +1325,23 @@ function TrieVisualizer() {
                     r={isRoot ? '12' : '10'}
                     className={`transition-all duration-300 ${
                       isSearchActive
-                        ? 'fill-amber-800 stroke-amber-400 stroke-2 ring-1 scale-110'
+                        ? 'fill-amber-500 stroke-amber-400 stroke-2 ring-1 scale-110'
                         : node.isWord
-                        ? 'fill-emerald-950 stroke-emerald-500 stroke-2'
-                        : 'fill-slate-900 stroke-slate-700'
+                        ? 'fill-emerald-500 dark:fill-emerald-950 stroke-emerald-600 stroke-2'
+                        : 'fill-white dark:fill-[#1e293b] stroke-slate-350 dark:stroke-slate-700'
                     }`}
                   />
                   <text
                     x={node.x}
                     y={node.y + (isRoot ? 3 : 3.5)}
                     textAnchor="middle"
-                    fill={isSearchActive ? '#fbbf24' : node.isWord ? '#34d399' : '#e2e8f0'}
-                    className="font-mono text-[8px] font-bold select-none pointer-events-none"
+                    className={`font-mono text-[8px] font-black pointer-events-none select-none ${
+                      isSearchActive 
+                        ? 'fill-slate-900 dark:fill-[#fbbf24]' 
+                        : node.isWord 
+                        ? 'fill-[#047857] dark:fill-[#34d399]' 
+                        : 'fill-slate-800 dark:fill-slate-100'
+                    }`}
                   >
                     {isRoot ? 'R' : node.char}
                   </text>
@@ -1340,7 +1353,7 @@ function TrieVisualizer() {
       </div>
 
       {/* Input panel & Interactive operations */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-900/40 p-3 rounded-lg border border-slate-800/60">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-3 bg-slate-50/50 dark:bg-slate-900/40 p-3 rounded-lg border border-slate-205/80 dark:border-slate-800/60">
         <div className="space-y-1.5">
           <span className="text-[10px] uppercase font-mono text-slate-500 font-bold block">Insert Custom Word</span>
           <div className="flex gap-2">
@@ -1349,7 +1362,7 @@ function TrieVisualizer() {
               placeholder="e.g. dog" 
               value={newWord} 
               onChange={e => setNewWord(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-slate-100 text-xs font-mono focus:border-sky-500 focus:outline-none"
+              className="w-full bg-white dark:bg-[#0f1322] border border-slate-300 dark:border-slate-800 rounded px-2.5 py-1 text-slate-805 dark:text-slate-100 text-xs font-mono focus:border-sky-505 focus:outline-none"
             />
             <button 
               onClick={insertWord}
@@ -1368,7 +1381,7 @@ function TrieVisualizer() {
               placeholder="e.g. cat" 
               value={searchWord} 
               onChange={e => setSearchWord(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-slate-100 text-xs font-mono focus:border-amber-500 focus:outline-none"
+              className="w-full bg-white dark:bg-[#0f1322] border border-slate-300 dark:border-slate-800 rounded px-2.5 py-1 text-slate-805 dark:text-slate-100 text-xs font-mono focus:border-amber-500 focus:outline-none"
             />
             <button 
               onClick={handleSearch}
@@ -1383,14 +1396,14 @@ function TrieVisualizer() {
       <div className="flex justify-end gap-2">
         <button 
           onClick={() => { setWords(['cat', 'car', 'cab']); setStatusText('Reset completed.'); }}
-          className="border border-slate-755 hover:bg-slate-800 text-slate-350 px-4 py-1.5 rounded text-xs font-semibold shrink-0"
+          className="border border-slate-300 dark:border-slate-755 bg-white dark:bg-slate-900 text-slate-705 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 py-1.5 rounded text-xs font-semibold shrink-0"
         >
           Reset Setup
         </button>
       </div>
 
-      <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
-        <strong className="text-sky-300">Logger:</strong> {statusText}
+      <p className="text-xs font-mono text-slate-655 dark:text-slate-400 bg-slate-100/60 dark:bg-[#11162d] p-2.5 rounded border border-slate-200 dark:border-[#202c4c]">
+        <strong className="text-sky-600 dark:text-sky-305">Logger:</strong> {statusText}
       </p>
     </div>
   );
@@ -1531,9 +1544,9 @@ function UnionFindVisualizer() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-slate-800 dark:text-slate-100">
       {/* Simulation Frame */}
-      <div className="w-full h-60 bg-slate-950 rounded-lg border border-slate-800 relative overflow-hidden flex items-center justify-center">
+      <div className="w-full h-60 bg-slate-50 dark:bg-[#121829] rounded-lg border border-slate-200 dark:border-[#202c4c] relative overflow-hidden flex items-center justify-center">
         <svg className="w-full h-full">
           {/* SVG definitions containing arrowheads */}
           <defs>
@@ -1565,7 +1578,7 @@ function UnionFindVisualizer() {
                 y1={from.y}
                 x2={to.x}
                 y2={to.y}
-                stroke={isHighlighted ? '#10b981' : '#475569'}
+                stroke={isHighlighted ? '#10b981' : '#cbd5e1'}
                 strokeWidth={isHighlighted ? '2.5' : '1.5'}
                 markerEnd="url(#parent-arrow)"
                 className="transition-all duration-350"
@@ -1588,20 +1601,25 @@ function UnionFindVisualizer() {
                   r="15"
                   className={`transition-all duration-300 ${
                     isActive
-                      ? 'fill-indigo-800 stroke-indigo-400 stroke-2 ring-2 scale-110'
+                      ? 'fill-indigo-600 stroke-indigo-400 stroke-2 ring-2 scale-110'
                       : isPathNode
-                      ? 'fill-emerald-950 stroke-emerald-500 stroke-2'
+                      ? 'fill-emerald-500 dark:fill-emerald-950 stroke-emerald-600 stroke-2'
                       : isRepresentativeRoot
-                      ? 'fill-slate-900 stroke-sky-505 stroke-2'
-                      : 'fill-slate-900 stroke-slate-705'
+                      ? 'fill-sky-50 dark:fill-sky-950 stroke-sky-500 dark:stroke-sky-400 stroke-2'
+                      : 'fill-white dark:fill-[#1e293b] stroke-slate-350 dark:stroke-slate-700'
                   }`}
                 />
                 <text
                   x={coords.x}
                   y={coords.y + 4}
                   textAnchor="middle"
-                  fill="#f8fafc"
-                  className="font-mono text-xs font-bold font-semibold select-none pointer-events-none"
+                  className={`font-mono text-xs font-black select-none pointer-events-none ${
+                    isActive || isPathNode 
+                      ? 'fill-white' 
+                      : isRepresentativeRoot 
+                      ? 'fill-sky-700 dark:fill-sky-300' 
+                      : 'fill-slate-800 dark:fill-slate-100'
+                  }`}
                 >
                   {idx}
                 </text>
@@ -1609,8 +1627,7 @@ function UnionFindVisualizer() {
                   x={coords.x}
                   y={coords.y - 18}
                   textAnchor="middle"
-                  fill="#64748b"
-                  className="font-mono text-[7px]"
+                  className="font-mono text-[7px] fill-slate-400 dark:fill-slate-500"
                 >
                   Rk:{ranks[idx]}
                 </text>
@@ -1627,14 +1644,14 @@ function UnionFindVisualizer() {
           placeholder="Element U (0-5)" 
           value={node1} 
           onChange={e => setNode1(e.target.value)}
-          className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-100 text-sm font-mono focus:border-indigo-505 focus:outline-none"
+          className="w-full bg-white dark:bg-[#0f1322] border border-slate-300 dark:border-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-100 text-sm font-mono focus:border-indigo-505 focus:outline-none"
         />
         <input 
           type="number" 
           placeholder="Element V (0-5)" 
           value={node2} 
           onChange={e => setNode2(e.target.value)}
-          className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 text-slate-100 text-sm font-mono focus:border-indigo-505 focus:outline-none"
+          className="w-full bg-white dark:bg-[#0f1322] border border-slate-300 dark:border-slate-800 rounded px-2.5 py-1.5 text-slate-800 dark:text-slate-100 text-sm font-mono focus:border-indigo-505 focus:outline-none"
         />
         <button 
           onClick={handleUnion}
@@ -1644,15 +1661,15 @@ function UnionFindVisualizer() {
         </button>
         <button 
           onClick={() => { setParents([0, 1, 2, 3, 4, 5]); setRanks([0, 0, 0, 0, 0, 0]); setStatusText('Reset completed.'); setFindPath([]); setActiveHighlight(null); }}
-          className="border border-slate-755 hover:bg-slate-800 text-slate-350 px-4 py-1.5 rounded text-xs font-semibold shrink-0"
+          className="border border-slate-300 dark:border-slate-755 bg-white dark:bg-slate-900 text-slate-705 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 px-4 py-1.5 rounded text-xs font-semibold shrink-0"
         >
           Reset Elements
         </button>
       </div>
 
-      <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
-        <span className="text-emerald-400 font-bold">Logger:</span> {statusText}
-        <span className="block mt-1.5 text-slate-500 text-[10px]">
+      <p className="text-xs font-mono text-slate-600 dark:text-slate-400 bg-slate-100/60 dark:bg-[#11162d] p-2.5 rounded border border-slate-200 dark:border-[#202c4c]">
+        <span className="text-emerald-600 dark:text-emerald-400 font-bold">Logger:</span> {statusText}
+        <span className="block mt-1.5 text-slate-400 dark:text-slate-500 text-[10px]">
           * Pro Tip: Click any node circle directly to execute `Find(X)` and visualize path compression step-by-step!
         </span>
       </p>
@@ -1725,21 +1742,21 @@ function ArrayVisualizer() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-slate-800 dark:text-slate-100">
       {/* Array Blocks */}
-      <div className="w-full h-36 bg-slate-950 rounded-lg flex items-center justify-center p-4 border border-slate-800">
+      <div className="w-full h-36 bg-slate-50 dark:bg-[#121829] rounded-lg flex items-center justify-center p-4 border border-slate-200 dark:border-[#202c4c]">
         <div className="flex gap-2 overflow-x-auto max-w-full">
           {arr.map((val, idx) => (
             <div 
               key={idx} 
               className={`w-14 h-14 rounded-lg border-2 flex flex-col items-center justify-center font-mono transition-all duration-300 shrink-0 ${
                 activeIndex === idx 
-                  ? 'bg-indigo-950 border-indigo-400 text-indigo-300 scale-105 shadow-md shadow-indigo-950' 
-                  : 'bg-slate-900 border-slate-700 text-slate-200'
+                  ? 'bg-indigo-50 dark:bg-indigo-950 border-indigo-500 text-indigo-700 dark:text-indigo-300 scale-105 shadow-md shadow-indigo-500/10' 
+                  : 'bg-white dark:bg-[#1e293b] border-slate-300 dark:border-slate-705 text-slate-800 dark:text-slate-200'
               }`}
             >
               <span className="text-base font-bold">{val}</span>
-              <span className="text-[9px] text-slate-500">[{idx}]</span>
+              <span className="text-[9px] text-slate-400 dark:text-slate-500">[{idx}]</span>
             </div>
           ))}
         </div>
@@ -1753,11 +1770,11 @@ function ArrayVisualizer() {
             placeholder="Val" 
             value={newValue} 
             onChange={e => setNewValue(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-100 text-sm font-mono focus:border-indigo-500 focus:outline-none"
+            className="w-full bg-white dark:bg-[#0f1322] border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-100 text-sm font-mono focus:border-indigo-505 focus:outline-none"
           />
           <button 
             onClick={handlePush}
-            className="bg-indigo-600 hover:bg-indigo-500 text-white px-3 py-1 rounded text-xs font-semibold flex items-center gap-1 shrink-0"
+            className="bg-indigo-600 hover:bg-indigo-505 text-white px-3 py-1 rounded text-xs font-semibold flex items-center gap-1 shrink-0"
           >
             <Plus className="w-3.5 h-3.5" /> Append
           </button>
@@ -1769,7 +1786,7 @@ function ArrayVisualizer() {
             placeholder="Search" 
             value={searchVal} 
             onChange={e => setSearchVal(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-100 text-sm font-mono focus:border-indigo-500 focus:outline-none"
+            className="w-full bg-white dark:bg-[#0f1322] border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-808 dark:text-slate-101 text-sm font-mono focus:border-indigo-505 focus:outline-none"
           />
           <button 
             onClick={handleSearch}
@@ -1788,14 +1805,14 @@ function ArrayVisualizer() {
 
         <button 
           onClick={() => { setArr([15, 32, 45, 9, 21, 88]); setStatusText('Reset completed.'); setActiveIndex(null); }}
-          className="border border-slate-700 hover:bg-slate-800 text-slate-300 px-4 py-1.5 rounded text-xs font-semibold"
+          className="border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-1.5 rounded text-xs font-semibold"
         >
           Reset Array
         </button>
       </div>
 
-      <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
-        <strong className="text-indigo-400">Logger:</strong> {statusText}
+      <p className="text-xs font-mono text-slate-600 dark:text-slate-400 bg-slate-100/60 dark:bg-[#11162d] p-2.5 rounded border border-slate-200 dark:border-[#202c4c]">
+        <strong className="text-indigo-600 dark:text-indigo-400">Logger:</strong> {statusText}
       </p>
     </div>
   );
@@ -1890,9 +1907,9 @@ function HashingVisualizer() {
   };
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-4 text-slate-800 dark:text-slate-100">
       {/* Buckets Grid Array */}
-      <div className="bg-slate-950 rounded-lg p-5 border border-slate-800 space-y-3">
+      <div className="bg-slate-50 dark:bg-[#121829] rounded-lg p-5 border border-slate-200 dark:border-[#202c4c] space-y-3">
         <span className="text-xs text-slate-500 font-mono block">Chaining Method Lookup (hash = asciiSum % 5)</span>
         
         <div className="space-y-2">
@@ -1903,36 +1920,36 @@ function HashingVisualizer() {
                 key={idx} 
                 className={`flex items-center gap-3 p-2 rounded border transition-all duration-300 ${
                   activeBucketIdx === idx 
-                    ? 'bg-indigo-950/45 border-indigo-500 shadow shadow-indigo-900/50' 
-                    : 'bg-slate-900/60 border-slate-800'
+                    ? 'bg-indigo-50 dark:bg-indigo-950/45 border-indigo-500 shadow shadow-indigo-900/50' 
+                    : 'bg-white dark:bg-[#1e293b]/60 border-slate-200 dark:border-slate-800'
                 }`}
               >
                 {/* Bucket marker */}
-                <div className="w-10 h-8 rounded bg-slate-950 border border-slate-700 flex items-center justify-center font-mono text-xs font-bold text-slate-300 shrink-0">
+                <div className="w-10 h-8 rounded bg-slate-50 dark:bg-slate-950 border border-slate-350 dark:border-slate-700 flex items-center justify-center font-mono text-xs font-bold text-slate-600 dark:text-slate-300 shrink-0">
                   [{idx}]
                 </div>
 
-                <ArrowRight className="w-3.5 h-3.5 text-slate-600 shrink-0" />
+                <ArrowRight className="w-3.5 h-3.5 text-slate-400 dark:text-slate-600 shrink-0" />
 
                 {/* Nodes chains list */}
                 <div className="flex gap-2 items-center overflow-x-auto py-1 max-w-full">
                   {chain.length === 0 ? (
-                    <span className="text-[10px] font-mono text-slate-600 italic">null</span>
+                    <span className="text-[10px] font-mono text-slate-400 dark:text-slate-600 italic">null</span>
                   ) : (
                     chain.map((entry, eIdx) => (
                       <React.Fragment key={eIdx}>
                         <div 
-                          className={`px-2.5 py-1 rounded border font-mono text-xs text-slate-200 flex flex-col shrink-0 ${
+                          className={`px-2.5 py-1 rounded border font-mono text-xs flex flex-col shrink-0 ${
                             activeBucketIdx === idx && activeEntryIdx === eIdx
-                              ? 'bg-indigo-905 border-indigo-400 text-indigo-200 font-bold scale-105'
-                              : 'bg-slate-950 border-slate-700'
+                              ? 'bg-indigo-100 dark:bg-indigo-900/60 border-indigo-400 text-indigo-700 dark:text-indigo-200 font-bold scale-105'
+                              : 'bg-white dark:bg-slate-950 border-slate-300 dark:border-slate-700 text-slate-800 dark:text-slate-200'
                           }`}
                         >
-                          <span className="text-slate-400 text-[10px]"><span className="text-indigo-400">key:</span> {entry.key}</span>
-                          <span className="text-slate-202 mt-0.5 font-semibold"><span className="text-emerald-400">val:</span> {entry.val}</span>
+                          <span className="text-slate-500 dark:text-slate-400 text-[10px]"><span className="text-indigo-600 dark:text-indigo-400">key:</span> {entry.key}</span>
+                          <span className="text-slate-800 dark:text-slate-100 mt-0.5 font-bold"><span className="text-emerald-605 dark:text-emerald-400">val:</span> {entry.val}</span>
                         </div>
                         {eIdx < chain.length - 1 && (
-                          <span className="text-slate-650 font-mono text-xs shrink-0">·next→</span>
+                          <span className="text-slate-400 dark:text-slate-650 font-mono text-xs shrink-0">·next→</span>
                         )}
                       </React.Fragment>
                     ))
@@ -1952,18 +1969,18 @@ function HashingVisualizer() {
             placeholder="Key" 
             value={insertKey} 
             onChange={e => setInsertKey(e.target.value)}
-            className="w-1/2 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-100 text-xs font-mono focus:border-indigo-500 focus:outline-none"
+            className="w-1/2 bg-white dark:bg-[#0f1322] border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-100 text-xs font-mono focus:border-indigo-500 focus:outline-none"
           />
           <input 
             type="text" 
             placeholder="Value" 
             value={insertVal} 
             onChange={e => setInsertVal(e.target.value)}
-            className="w-1/2 bg-slate-950 border border-slate-800 rounded px-2 py-1 text-slate-100 text-xs font-mono focus:border-indigo-500 focus:outline-none"
+            className="w-1/2 bg-white dark:bg-[#0f1322] border border-slate-300 dark:border-slate-800 rounded px-2 py-1 text-slate-800 dark:text-slate-100 text-xs font-mono focus:border-indigo-500 focus:outline-none"
           />
           <button 
             onClick={handlePut}
-            className="bg-indigo-650 hover:bg-indigo-600 text-white px-3 py-1 rounded text-xs font-semibold shrink-0"
+            className="bg-indigo-600 hover:bg-indigo-550 text-white px-3 py-1 rounded text-xs font-semibold shrink-0"
           >
             PUT Key
           </button>
@@ -1975,7 +1992,7 @@ function HashingVisualizer() {
             placeholder="Get key lookup" 
             value={searchKey} 
             onChange={e => setSearchKey(e.target.value)}
-            className="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1 text-slate-100 text-xs font-mono focus:border-indigo-505 focus:outline-none"
+            className="w-full bg-white dark:bg-[#0f1322] border border-slate-350 dark:border-slate-800 rounded px-2.5 py-1 text-slate-800 dark:text-slate-100 text-xs font-mono focus:border-indigo-505 focus:outline-none"
           />
           <button 
             onClick={handleSearch}
@@ -1998,14 +2015,14 @@ function HashingVisualizer() {
             setActiveBucketIdx(null); 
             setActiveEntryIdx(null); 
           }}
-          className="border border-slate-800 hover:bg-slate-800 text-slate-300 px-4 py-1.5 rounded text-xs font-semibold"
+          className="border border-slate-300 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 px-4 py-1.5 rounded text-xs font-semibold"
         >
           Reset Buckets
         </button>
       </div>
 
-      <p className="text-xs font-mono text-slate-400 bg-slate-950 p-2.5 rounded border border-slate-850">
-        <strong className="text-emerald-400">Logger:</strong> {statusText}
+      <p className="text-xs font-mono text-slate-600 dark:text-slate-400 bg-slate-100/60 dark:bg-[#11162d] p-2.5 rounded border border-slate-200 dark:border-[#202c4c]">
+        <strong className="text-emerald-600 dark:text-emerald-400">Logger:</strong> {statusText}
       </p>
     </div>
   );

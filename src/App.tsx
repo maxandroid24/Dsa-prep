@@ -46,6 +46,33 @@ import {
   CloudLightning
 } from 'lucide-react';
 
+const DEMO_SEED_PROBLEMS = ['arr-1', 'arr-2', 'arr-3', 'str-2', 'str-5', 'll-1', 'll-4', 'tree-1', 'tree-6', 'graph-2', 'dp-1', 'dp-5', 'bs-1', 'bs-4', 'stack-3', 'recur-2', 'heap-1', 'back-3'];
+
+export function sanitizeProgress(prog: UserProgress): UserProgress {
+  if (!prog) return prog;
+  
+  // Clean up if it matches the demo prefilled defaults (streak = 5 or 18 solved problems)
+  const hasDemoStreak = prog.revisionStreak === 5;
+  const hasDemoProblems = Array.isArray(prog.solvedProblems) && 
+    (prog.solvedProblems.length === 18 && prog.solvedProblems.includes('back-3'));
+
+  if (hasDemoStreak || hasDemoProblems) {
+    const nextSolved = (prog.solvedProblems || []).filter(id => !DEMO_SEED_PROBLEMS.includes(id));
+    const nextDates = { ...(prog.solvedProblemDates || {}) };
+    DEMO_SEED_PROBLEMS.forEach(id => {
+      delete nextDates[id];
+    });
+    
+    return {
+      ...prog,
+      solvedProblems: nextSolved,
+      solvedProblemDates: nextDates,
+      revisionStreak: prog.revisionStreak === 5 ? 0 : prog.revisionStreak
+    };
+  }
+  return prog;
+}
+
 export default function App() {
   const [activeView, setActiveView] = useState<string>('dashboard');
   const [activeTopicId, setActiveTopicId] = useState<string>('arrays');
@@ -103,7 +130,9 @@ export default function App() {
         if (parsed.solvedProblemDates && parsed.solvedProblemDates['arr-1']) {
           delete parsed.solvedProblemDates['arr-1'];
         }
-        setProgress(parsed);
+        
+        const sanitized = sanitizeProgress(parsed);
+        setProgress(sanitized);
       } catch (err) {
         console.error('Progress restore error:', err);
       }
@@ -116,42 +145,44 @@ export default function App() {
       
       if (currentUser) {
         console.log('User signed in:', currentUser.email);
-        const cloudProgress = await fetchUserProgress(currentUser.uid);
+        const cloudProgressRaw = await fetchUserProgress(currentUser.uid);
+        const cloudProgress = cloudProgressRaw ? sanitizeProgress(cloudProgressRaw) : null;
         
         setProgress(prevLocal => {
+          const cleanLocal = sanitizeProgress(prevLocal);
           if (cloudProgress) {
             // Merge completed topics (unique values)
             const mergedCompleted = Array.from(new Set([
               ...(cloudProgress.completedTopics || []),
-              ...(prevLocal.completedTopics || [])
+              ...(cleanLocal.completedTopics || [])
             ]));
             
             // Merge solved problems (unique values)
             const mergedSolved = Array.from(new Set([
               ...(cloudProgress.solvedProblems || []),
-              ...(prevLocal.solvedProblems || [])
+              ...(cleanLocal.solvedProblems || [])
             ]));
             
             // Merge weak areas (unique values)
             const mergedWeak = Array.from(new Set([
               ...(cloudProgress.weakAreas || []),
-              ...(prevLocal.weakAreas || [])
+              ...(cleanLocal.weakAreas || [])
             ]));
 
             // Merge revision status dictionaries
             const mergedStatus = {
               ...(cloudProgress.revisionStatus || {}),
-              ...(prevLocal.revisionStatus || {})
+              ...(cleanLocal.revisionStatus || {})
             };
             
             // If overlapping status values exist, prioritize higher mastery: mastered > revised > unrevised
             const allKeys = new Set([
               ...Object.keys(cloudProgress.revisionStatus || {}),
-              ...Object.keys(prevLocal.revisionStatus || {})
+              ...Object.keys(cleanLocal.revisionStatus || {})
             ]);
             allKeys.forEach(k => {
               const cloudVal = cloudProgress.revisionStatus?.[k];
-              const localVal = prevLocal.revisionStatus?.[k];
+              const localVal = cleanLocal.revisionStatus?.[k];
               if (cloudVal && localVal) {
                 if (cloudVal === 'mastered' || localVal === 'mastered') {
                   mergedStatus[k] = 'mastered';
@@ -164,37 +195,39 @@ export default function App() {
             const mergedProgress: UserProgress = {
               completedTopics: mergedCompleted,
               solvedProblems: mergedSolved,
-              revisionStreak: Math.max(cloudProgress.revisionStreak || 0, prevLocal.revisionStreak || 0),
-              lastActiveDate: new Date(cloudProgress.lastActiveDate).getTime() > new Date(prevLocal.lastActiveDate).getTime()
+              revisionStreak: Math.max(cloudProgress.revisionStreak || 0, cleanLocal.revisionStreak || 0),
+              lastActiveDate: new Date(cloudProgress.lastActiveDate).getTime() > new Date(cleanLocal.lastActiveDate).getTime()
                 ? cloudProgress.lastActiveDate
-                : prevLocal.lastActiveDate,
+                : cleanLocal.lastActiveDate,
               weakAreas: mergedWeak,
               revisionStatus: mergedStatus,
               solvedProblemDates: {
                 ...(cloudProgress.solvedProblemDates || {}),
-                ...(prevLocal.solvedProblemDates || {})
+                ...(cleanLocal.solvedProblemDates || {})
               },
-              leetcodeUsername: cloudProgress.leetcodeUsername || prevLocal.leetcodeUsername || '',
+              leetcodeUsername: cloudProgress.leetcodeUsername || cleanLocal.leetcodeUsername || '',
               leetcodeSolvedProblems: {
                 ...(cloudProgress.leetcodeSolvedProblems || {}),
-                ...(prevLocal.leetcodeSolvedProblems || {})
+                ...(cleanLocal.leetcodeSolvedProblems || {})
               },
-              maxAgeDays: cloudProgress.maxAgeDays !== undefined ? cloudProgress.maxAgeDays : prevLocal.maxAgeDays
+              maxAgeDays: cloudProgress.maxAgeDays !== undefined ? cloudProgress.maxAgeDays : cleanLocal.maxAgeDays
             };
 
+            const finalProgress = sanitizeProgress(mergedProgress);
+
             // Save the merged results back to both Firestore and localStorage synchronously
-            saveUserProgress(currentUser.uid, currentUser.email || '', mergedProgress).catch(err => {
+            saveUserProgress(currentUser.uid, currentUser.email || '', finalProgress).catch(err => {
               console.error('Initial progress merge-back error:', err);
             });
             
-            localStorage.setItem('dsa_hub_progress_v2', JSON.stringify(mergedProgress));
-            return mergedProgress;
+            localStorage.setItem('dsa_hub_progress_v2', JSON.stringify(finalProgress));
+            return finalProgress;
           } else {
             // If no cloud progress exists yet, back up their current local training session
-            saveUserProgress(currentUser.uid, currentUser.email || '', prevLocal).catch(err => {
+            saveUserProgress(currentUser.uid, currentUser.email || '', cleanLocal).catch(err => {
               console.error('Initial progress save error:', err);
             });
-            return prevLocal;
+            return cleanLocal;
           }
         });
       }
@@ -470,13 +503,13 @@ export default function App() {
       {/* Liquid Glass ambient drifting background blobs */}
       <div className="fixed inset-0 overflow-hidden pointer-events-none z-0">
         {/* Blob 1: Fuchsia neon glow */}
-        <div className="absolute w-[350px] h-[350px] rounded-full bg-fuchsia-500/10 dark:bg-fuchsia-500/5 blur-[95px] md:blur-[135px] top-[-50px] right-[-50px] animate-liquid-1" />
+        <div className="absolute w-[350px] h-[350px] rounded-full bg-fuchsia-500/8 dark:bg-fuchsia-500/3 blur-[95px] md:blur-[135px] top-[-50px] right-[-50px] animate-liquid-1" />
         
         {/* Blob 2: Cyan/blue glow */}
-        <div className="absolute w-[450px] h-[450px] rounded-full bg-[#4880FF]/16 dark:bg-[#4880FF]/8 blur-[105px] md:blur-[155px] bottom-[-100px] left-[-100px] animate-liquid-2" />
+        <div className="absolute w-[450px] h-[450px] rounded-full bg-[#4880FF]/10 dark:bg-[#4880FF]/5 blur-[105px] md:blur-[155px] bottom-[-100px] left-[-100px] animate-liquid-2" />
         
         {/* Blob 3: Amber/warm sun glow */}
-        <div className="absolute w-[320px] h-[320px] rounded-full bg-amber-400/12 dark:bg-amber-400/4 blur-[85px] md:blur-[125px] top-[40%] left-[30%] animate-liquid-3" />
+        <div className="absolute w-[320px] h-[320px] rounded-full bg-amber-400/8 dark:bg-amber-400/3 blur-[85px] md:blur-[125px] top-[40%] left-[30%] animate-liquid-3" />
       </div>
 
       <div className="relative z-10 min-h-screen flex flex-col">
@@ -944,6 +977,7 @@ export default function App() {
               onSignIn={signInWithGoogle}
               onUpdateMaxAgeDays={handleUpdateMaxAgeDays}
               onSyncLeetcode={handleSyncLeetcode}
+              onUpdateProgress={saveProgress}
             />
           )}
 

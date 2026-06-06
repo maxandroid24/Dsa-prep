@@ -5,6 +5,7 @@ import { getAllProblems } from '../data/problems';
 import { dsaRoadmap } from '../data/roadmap';
 import { Award, Zap, CheckCircle2, Flame, Calendar, Trophy, BookOpen, ChevronRight, Activity, Check, Cloud, LogIn, Clock, Database, RefreshCw, Code2 } from 'lucide-react';
 import { User } from 'firebase/auth';
+import ProgressChart from './ProgressChart';
 
 interface DashboardProps {
   progress: UserProgress;
@@ -14,6 +15,7 @@ interface DashboardProps {
   onSignIn: () => void;
   onUpdateMaxAgeDays: (days: number | undefined) => void;
   onSyncLeetcode: (username: string) => Promise<{ success: boolean; count?: number; message?: string }>;
+  onUpdateProgress?: (updated: UserProgress) => void;
 }
 
 export default function Dashboard({ 
@@ -23,7 +25,8 @@ export default function Dashboard({
   user, 
   onSignIn,
   onUpdateMaxAgeDays,
-  onSyncLeetcode
+  onSyncLeetcode,
+  onUpdateProgress
 }: DashboardProps) {
   const [lcUsername, setLcUsername] = useState<string>(rawProgress.leetcodeUsername || '');
   const [syncLoading, setSyncLoading] = useState<boolean>(false);
@@ -197,6 +200,11 @@ export default function Dashboard({
           </div>
         </div>
       </div>
+
+      {/* 30-Day Solved Progress Visualization Graph */}
+      {onUpdateProgress && (
+        <ProgressChart progress={rawProgress} onUpdateProgress={onUpdateProgress} />
+      )}
 
       {/* SDE Integration Panel: LeetCode Verification & Retention Filter */}
       <div className="bg-white dark:bg-[#232738] border border-[#F1F2F7] dark:border-[#2C3148] rounded-2xl p-6 shadow-[0_4px_22px_rgba(0,0,0,0.02)] transition-all duration-155 space-y-6">
