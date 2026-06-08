@@ -566,7 +566,6 @@ export default function TopicsView({
                         title={TOPIC_YOUTUBE_VIDEOS[topic.id].title}
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
                         allowFullScreen
-                        referrerPolicy="no-referrer"
                       />
                     </div>
                   </div>
@@ -576,9 +575,6 @@ export default function TopicsView({
                       <h4 className="text-base font-extrabold text-slate-850 dark:text-slate-100 tracking-tight leading-snug mt-1">
                         {TOPIC_YOUTUBE_VIDEOS[topic.id].title}
                       </h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-2">
-                        Created by <strong className="text-[#4880FF]">{TOPIC_YOUTUBE_VIDEOS[topic.id].creator}</strong>
-                      </p>
                     </div>
                     <div className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed font-sans bg-slate-50 dark:bg-[#1B1E2D] border border-slate-100 dark:border-slate-800/60 p-3.5 rounded-xl">
                       Pair this video lecture with our step-by-step interactive visualizer below to build strong muscular memory of pointer increments and condition evaluations.
