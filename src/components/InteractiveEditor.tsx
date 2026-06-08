@@ -9,7 +9,7 @@ import {
 function highlightCode(code: string, language: string): string {
   if (!code) return '';
 
-  // Escape HTML characters
+  // Escape HTML characters safely
   let html = code
     .replace(/&/g, '&amp;')
     .replace(/</g, '&lt;')
@@ -25,7 +25,7 @@ function highlightCode(code: string, language: string): string {
     });
   };
 
-  // Mask multiline comments
+  // Mask multiline comments first
   mask(/(\/\*[\s\S]*?\*\/)/g, 'text-slate-500 italic font-medium');
 
   // Mask inline/single line comments
@@ -39,11 +39,8 @@ function highlightCode(code: string, language: string): string {
   mask(/("(?:\\.|[^"\\])*")/g, 'text-[#7EE787]');
   mask(/('(?:\\.|[^'\\])*')/g, 'text-[#7EE787]');
 
-  // Numbers
-  html = html.replace(/\b(\d+)\b/g, '<span class="text-[#D19A66]">$1</span>');
-
-  // Helper functions / method invocations
-  html = html.replace(/\b([a-zA-Z_][a-zA-Z0-9_]*)(?=\s*\()/g, '<span class="text-[#D2A8FF] font-semibold">$1</span>');
+  // Mask helper functions / method invocations (must be masked before keywords)
+  mask(/\b([a-zA-Z_][a-zA-Z0-9_]*)(?=\s*\()/g, 'text-[#D2A8FF] font-semibold');
 
   // Specify keywords to style
   const pythonKeywords = [
@@ -71,7 +68,7 @@ function highlightCode(code: string, language: string): string {
   else if (language === 'cpp') selectKeywords = cppKeywords;
   else if (language === 'kotlin') selectKeywords = kotlinKeywords;
 
-  // Render keywords
+  // Mask keywords
   selectKeywords.forEach(kw => {
     // Escape keywords that contain array brackets like int[]
     const escapedKw = kw.replace(/[-\/\\^$*+?.()|[\]{}]/g, '\\$&');
@@ -84,12 +81,15 @@ function highlightCode(code: string, language: string): string {
       replacementClass = 'text-[#FFA657] italic'; // orange style
     }
 
-    html = html.replace(r, `<span class="${replacementClass}">$1</span>`);
+    mask(r, replacementClass);
   });
 
-  // Restore placeholders from last to first
+  // Mask numbers (after keywords, functions, and comments so we do not extract digits inside placeholders)
+  mask(/\b(\d+)\b/g, 'text-[#D19A66]');
+
+  // Restore placeholders from last to first to handle safely without regex interpolation issues ($ symbol issues)
   for (let i = placeholders.length - 1; i >= 0; i--) {
-    html = html.replace(`___PLACEHOLDER_${i}___`, placeholders[i]);
+    html = html.split(`___PLACEHOLDER_${i}___`).join(placeholders[i]);
   }
 
   return html;
@@ -179,6 +179,114 @@ export default function InteractiveEditor({
       ...prev,
       [selectedLang]: value
     }));
+  };
+
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
+    if (e.key === 'Tab') {
+      e.preventDefault();
+      const textarea = e.currentTarget;
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      const value = textarea.value;
+
+      const tabSpaces = '    ';
+      const isRange = start !== end;
+
+      if (e.shiftKey) {
+        // Shift+Tab (Unindent)
+        if (!isRange) {
+          // Unindent current line: find start of line
+          const beforeCaret = value.substring(0, start);
+          const lastNewline = beforeCaret.lastIndexOf('\n');
+          const lineStart = lastNewline === -1 ? 0 : lastNewline + 1;
+          const line = value.substring(lineStart, start);
+          
+          let removedChars = 0;
+          let newLine = line;
+          if (line.startsWith('    ')) {
+            newLine = line.substring(4);
+            removedChars = 4;
+          } else if (line.startsWith('\t')) {
+            newLine = line.substring(1);
+            removedChars = 1;
+          } else {
+            const spaceMatch = line.match(/^ {1,3}/);
+            if (spaceMatch) {
+              newLine = line.substring(spaceMatch[0].length);
+              removedChars = spaceMatch[0].length;
+            }
+          }
+
+          if (removedChars > 0) {
+            const newValue = value.substring(0, lineStart) + newLine + value.substring(start);
+            handleCodeChange(newValue);
+            setTimeout(() => {
+              if (textareaRef.current) {
+                textareaRef.current.selectionStart = textareaRef.current.selectionEnd = Math.max(lineStart, start - removedChars);
+              }
+            }, 0);
+          }
+        } else {
+          // Unindent multi-line range selection
+          const selectedText = value.substring(start, end);
+          const lines = selectedText.split('\n');
+          let totalRemoved = 0;
+          const unindentedLines = lines.map(line => {
+            if (line.startsWith('    ')) {
+              totalRemoved += 4;
+              return line.substring(4);
+            } else if (line.startsWith('\t')) {
+              totalRemoved += 1;
+              return line.substring(1);
+            } else {
+              const spaceMatch = line.match(/^ {1,3}/);
+              if (spaceMatch) {
+                totalRemoved += spaceMatch[0].length;
+                return line.substring(spaceMatch[0].length);
+              }
+            }
+            return line;
+          }).join('\n');
+
+          const newValue = value.substring(0, start) + unindentedLines + value.substring(end);
+          handleCodeChange(newValue);
+
+          setTimeout(() => {
+            if (textareaRef.current) {
+              textareaRef.current.selectionStart = start;
+              textareaRef.current.selectionEnd = end - totalRemoved;
+            }
+          }, 0);
+        }
+      } else {
+        // Tab (Indent)
+        if (!isRange) {
+          const newValue = value.substring(0, start) + tabSpaces + value.substring(end);
+          handleCodeChange(newValue);
+
+          setTimeout(() => {
+            if (textareaRef.current) {
+              textareaRef.current.selectionStart = textareaRef.current.selectionEnd = start + 4;
+            }
+          }, 0);
+        } else {
+          // Indent multi-line range selection
+          const selectedText = value.substring(start, end);
+          const lines = selectedText.split('\n');
+          const indentedLines = lines.map(line => tabSpaces + line).join('\n');
+          const newValue = value.substring(0, start) + indentedLines + value.substring(end);
+          
+          handleCodeChange(newValue);
+
+          setTimeout(() => {
+            if (textareaRef.current) {
+              textareaRef.current.selectionStart = start;
+              textareaRef.current.selectionEnd = end + (lines.length * 4);
+            }
+          }, 0);
+        }
+      }
+    }
   };
 
   const handleAddTestCase = (e: FormEvent) => {
@@ -383,6 +491,7 @@ export default function InteractiveEditor({
                   value={activeCode}
                   onChange={(e) => handleCodeChange(e.target.value)}
                   onScroll={handleScroll}
+                  onKeyDown={handleKeyDown}
                   spellCheck={false}
                   className="absolute inset-0 w-full h-full p-4 bg-transparent text-transparent caret-white font-mono text-xs focus:outline-none resize-none border-none outline-none leading-5 overflow-auto select-text selection:bg-[#4880FF]/25 z-10"
                   placeholder={`// Write your standard solution under ${selectedLang.toUpperCase()}`}

@@ -3,8 +3,9 @@ import { UserProgress } from '../types';
 import { dsaTopics } from '../data/topics';
 import { getProblemsForTopic } from '../data/problems';
 import Visualizers from './Visualizers';
-import { Check, Clipboard, BookOpen, FileCode2, Code2, Trophy, Sparkles, ExternalLink, FileText } from 'lucide-react';
+import { Check, Clipboard, BookOpen, FileCode2, Code2, Trophy, Sparkles, ExternalLink, FileText, Play } from 'lucide-react';
 import InteractiveEditor from './InteractiveEditor';
+import AnimatedVideoExplainer from './AnimatedVideoExplainer';
 
 interface TopicsViewProps {
   activeTopicId: string;
@@ -27,7 +28,7 @@ export default function TopicsView({
   onUpdateRevisionStatus,
   onSaveNotes
 }: TopicsViewProps) {
-  const [activeTab, setActiveTab] = useState<'theory' | 'templates' | 'practice'>('theory');
+  const [activeTab, setActiveTab] = useState<'theory' | 'templates' | 'practice' | 'video'>('theory');
   const [activeLanguage, setActiveLanguage] = useState<'java' | 'kotlin' | 'python' | 'cpp'>('java');
   const [copiedId, setCopiedId] = useState<string | null>(null);
   const [activeDifficultyFilter, setActiveDifficultyFilter] = useState<'Beginner' | 'Intermediate' | 'Advanced'>('Beginner');
@@ -195,6 +196,17 @@ export default function TopicsView({
           }`}
         >
           <Trophy className="w-3.5 h-3.5" /> Practice Questions (30 Problems)
+        </button>
+
+        <button 
+          onClick={() => setActiveTab('video')}
+          className={`px-4 py-2.5 text-xs font-bold border-b-2 transition flex items-center gap-1.5 shrink-0 outline-none ${
+            activeTab === 'video' 
+              ? 'border-[#4880FF] text-[#4880FF]' 
+              : 'border-transparent text-slate-400 hover:text-slate-700 dark:hover:text-slate-300'
+          }`}
+        >
+          <Play className="w-3.5 h-3.5" /> Animated "Video" Guide
         </button>
       </div>
 
@@ -523,6 +535,13 @@ export default function TopicsView({
                 );
               })}
             </div>
+          </div>
+        )}
+
+        {/* PANEL 4: ANIMATED VIDEO EXPLANER */}
+        {activeTab === 'video' && (
+          <div className="space-y-6">
+            <AnimatedVideoExplainer topicId={topic.id} />
           </div>
         )}
       </div>

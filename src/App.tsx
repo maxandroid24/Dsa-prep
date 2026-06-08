@@ -587,12 +587,12 @@ export default function App() {
       <div className="relative z-10 min-h-screen flex flex-col">
         <Confetti active={showConfetti} onComplete={() => setShowConfetti(false)} />
       {/* 1. Global Header Bar */}
-      <header className={`sticky top-0 z-40 border-b flex h-16 items-center justify-between px-6 transition-all duration-150 shadow-sm ${
+      <header className={`sticky top-0 z-40 border-b flex h-16 items-center justify-between px-3 sm:px-6 transition-all duration-150 shadow-sm ${
         isDarkMode 
           ? 'bg-[#232738] border-[#2E344A]' 
           : 'bg-white border-[#F1F2F7]'
       }`}>
-        <div className="flex items-center gap-3">
+        <div className="flex items-center gap-1.5 sm:gap-3">
           {/* Mobile Hamburg menu */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -626,13 +626,13 @@ export default function App() {
                 handleNavigate('dashboard');
               }
             }}
-            className="flex items-center gap-2.5 cursor-pointer font-sans select-none animate-fade-in"
+            className="flex items-center gap-2 cursor-pointer font-sans select-none animate-fade-in"
           >
-            <div className="w-9 h-9 rounded-xl bg-[#4880FF] flex items-center justify-center text-white font-black text-sm uppercase shadow-[0_4px_10px_rgba(72,128,255,0.4)]">
+            <div className="w-8 h-8 sm:w-9 sm:h-9 rounded-xl bg-[#4880FF] flex items-center justify-center text-white font-black text-xs sm:text-sm uppercase shadow-[0_4px_10px_rgba(72,128,255,0.4)] shrink-0">
               {appMode === 'system-design' ? 'SD' : 'DS'}
             </div>
-            <div>
-              <h1 className="text-sm font-sans font-extrabold tracking-tight block">
+            <div className="hidden min-[450px]:block">
+              <h1 className="text-xs sm:text-sm font-sans font-extrabold tracking-tight block leading-tight">
                 {appMode === 'system-design' ? (
                   <>
                     <span className="text-[#4880FF]">Sys</span>Design
@@ -643,7 +643,7 @@ export default function App() {
                   </>
                 )}
               </h1>
-              <span className="text-[9px] text-[#4880FF] font-mono block -mt-1 font-extrabold tracking-wider">
+              <span className="text-[8px] sm:text-[9px] text-[#4880FF] font-mono block -mt-0.5 font-extrabold tracking-wider">
                 {appMode === 'system-design' ? 'VISUAL ACADEMY' : 'DSA PREP HUB'}
               </span>
             </div>
@@ -651,7 +651,7 @@ export default function App() {
         </div>
 
         {/* Global Search Bar (with matching results dropdown) */}
-        <div className="relative w-72 md:w-96 hidden sm:block">
+        <div className="relative w-72 md:w-96 hidden lg:block">
           <div className="relative">
             <Search className="absolute left-3.5 top-2.5 w-4 h-4 text-slate-400" />
             <input 
@@ -688,7 +688,7 @@ export default function App() {
                 <div className="px-4 py-3 text-slate-500 text-center">No instant matches found</div>
               ) : (
                 searchResults.map((item, id) => (
-                  <div 
+                   <div 
                     key={id}
                     onClick={() => handleNavigateFromSearch(item)}
                     className={`px-3 py-2 cursor-pointer transition border-b border-slate-700/10 flex justify-between items-center ${
@@ -710,14 +710,14 @@ export default function App() {
         </div>
 
         {/* TOP LEVEL MODE SLIDER */}
-        <div className="flex items-center ml-4 mr-auto md:mr-0 pl-1">
-          <div className="relative flex items-center bg-slate-100 dark:bg-[#1B1E2D] p-1 rounded-full border border-slate-200 dark:border-slate-800 w-[240px] h-9 select-none shrink-0 font-sans shadow-inner">
+        <div className="flex items-center ml-1.5 sm:ml-4 mr-auto md:mr-0 pl-0.5 sm:pl-1 shrink-0">
+          <div className="relative flex items-center bg-slate-100 dark:bg-[#1B1E2D] p-1 rounded-full border border-slate-200 dark:border-slate-800 w-[130px] min-[400px]:w-[155px] sm:w-[240px] h-9 select-none shrink-0 font-sans shadow-inner">
             {/* The sliding physical background */}
             <div 
               className="absolute top-1 bottom-1 left-1 bg-[#4880FF] rounded-full transition-all duration-300 ease-out shadow-md"
               style={{
-                width: '114px',
-                transform: `translateX(${appMode === 'system-design' ? '114px' : '0px'})`
+                width: 'calc(50% - 4px)',
+                transform: `translateX(${appMode === 'system-design' ? '100%' : '0%'})`
               }}
             />
             
@@ -728,12 +728,13 @@ export default function App() {
                 setAppMode('dsa');
                 setActiveView('dashboard');
               }}
-              className={`flex-1 relative z-10 text-center text-[10px] md:text-[11px] font-extrabold tracking-wide uppercase transition-colors duration-200 cursor-pointer h-full flex items-center justify-center gap-1 ${
+              className={`flex-1 relative z-10 text-center text-[9px] sm:text-[10px] md:text-[11px] font-extrabold tracking-wide uppercase transition-colors duration-200 cursor-pointer h-full flex items-center justify-center gap-0.5 sm:gap-1 ${
                 appMode === 'dsa' ? 'text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
-              <Activity className="w-3.5 h-3.5" />
-              <span>DSA Prep</span>
+              <Activity className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden min-[400px]:inline-block">DSA Prep</span>
+              <span className="inline-block min-[400px]:hidden">DSA</span>
             </button>
 
             {/* Option B: System Design */}
@@ -743,62 +744,63 @@ export default function App() {
                 setAppMode('system-design');
                 setActiveView('system-design');
               }}
-              className={`flex-1 relative z-10 text-center text-[10px] md:text-[11px] font-extrabold tracking-wide uppercase transition-colors duration-200 cursor-pointer h-full flex items-center justify-center gap-1 ${
+              className={`flex-1 relative z-10 text-center text-[9px] sm:text-[10px] md:text-[11px] font-extrabold tracking-wide uppercase transition-colors duration-200 cursor-pointer h-full flex items-center justify-center gap-0.5 sm:gap-1 ${
                 appMode === 'system-design' ? 'text-white' : 'text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200'
               }`}
             >
-              <Database className="w-3.5 h-3.5" />
-              <span>Sys Design</span>
+              <Database className="w-3.5 h-3.5 shrink-0" />
+              <span className="hidden min-[400px]:inline-block">Sys Design</span>
+              <span className="inline-block min-[400px]:hidden">System</span>
             </button>
           </div>
         </div>
 
         {/* Right action metrics */}
-        <div className="flex items-center gap-3.5">
+        <div className="flex items-center gap-1.5 sm:gap-3.5 shrink-0">
           {/* Flame Streak count */}
-          <div className="flex items-center gap-1.5 bg-amber-500/10 border border-amber-500/20 rounded-full px-3 py-1 text-amber-500 font-sans text-xs font-semibold select-none">
-            <span>🔥 Streak: {progress.revisionStreak}d</span>
+          <div className="flex items-center gap-0.5 sm:gap-1.5 bg-amber-500/10 border border-amber-500/20 rounded-full px-2 sm:px-3 py-1 text-amber-500 font-sans text-[10px] sm:text-xs font-semibold select-none">
+            <span>🔥 <span className="hidden min-[480px]:inline">Streak: </span>{progress.revisionStreak}d</span>
           </div>
 
           {/* Notification bell container */}
           <div className="relative cursor-pointer p-1.5 rounded-full hover:bg-slate-100 dark:hover:bg-slate-850 transition select-none">
-            <Bell className="w-5 h-5 text-slate-500 dark:text-slate-400" />
+            <Bell className="w-4 h-4 sm:w-5 sm:h-5 text-slate-500 dark:text-slate-400" />
             <span className="absolute top-1 right-1 w-2.5 h-2.5 bg-[#FF3E3E] rounded-full border-2 border-white dark:border-[#232738]" />
           </div>
 
           {/* Theme toggling controls */}
           <button 
             onClick={() => setIsDarkMode(!isDarkMode)}
-            className={`p-2 rounded-full border cursor-pointer select-none transition ${
+            className={`p-1.5 sm:p-2 rounded-full border cursor-pointer select-none transition ${
               isDarkMode 
                 ? 'border-[#2C3148] text-[#FFA800] bg-[#1B1E2D] hover:bg-[#2C3148]' 
                 : 'border-[#F1F2F7] text-slate-650 bg-slate-50 hover:bg-slate-100'
             }`}
             title="Toggle Theme Mode"
           >
-            {isDarkMode ? <Sun className="w-4 h-4" /> : <Moon className="w-4 h-4" />}
+            {isDarkMode ? <Sun className="w-3.5 h-3.5 sm:w-4 sm:h-4" /> : <Moon className="w-3.5 h-3.5 sm:w-4 sm:h-4" />}
           </button>
 
-          <div className="h-6 w-px bg-slate-200 dark:bg-[#2C3148] hidden md:block" />
+          <div className="h-6 w-px bg-slate-200 dark:bg-[#2C3148] hidden sm:block" />
 
           {/* Candidate Profile / Google Auth Widget */}
           {authLoading ? (
-            <div className="w-32 h-9 rounded-xl bg-slate-200 dark:bg-slate-800 animate-pulse hidden md:block" />
+            <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-800 animate-pulse" />
           ) : user ? (
-            <div className="relative font-sans hidden md:block">
+            <div className="relative font-sans">
               <button 
                 onClick={() => setShowProfileMenu(!showProfileMenu)}
-                className="flex items-center gap-2.5 select-none cursor-pointer p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+                className="flex items-center gap-1 sm:gap-2.5 select-none cursor-pointer p-0.5 sm:p-1 rounded-xl hover:bg-slate-100 dark:hover:bg-slate-800 transition"
               >
                 {user.photoURL ? (
                   <img 
                     src={user.photoURL} 
                     alt={user.displayName || "User"} 
-                    className="w-8 h-8 rounded-full border border-[#4880FF]/30 object-cover"
+                    className="w-7 h-7 sm:w-8 sm:h-8 rounded-full border border-[#4880FF]/30 object-cover"
                     referrerPolicy="no-referrer"
                   />
                 ) : (
-                  <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-[#4880FF] to-[#3570F0] text-white flex items-center justify-center font-bold text-xs shadow">
+                  <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-tr from-[#4880FF] to-[#3570F0] text-white flex items-center justify-center font-bold text-xs shadow">
                     {user.displayName ? user.displayName.slice(0, 2).toUpperCase() : 'US'}
                   </div>
                 )}
@@ -810,7 +812,7 @@ export default function App() {
                     <Cloud className="w-2.5 h-2.5 text-[#00B69B] animate-pulse" /> CLOUD SYNCED
                   </span>
                 </div>
-                <ChevronDown className="w-3.5 h-3.5 text-slate-400" />
+                <ChevronDown className="w-3.5 h-3.5 text-slate-400 hidden sm:block" />
               </button>
 
               {/* Profile dropdown menu */}
@@ -853,10 +855,10 @@ export default function App() {
           ) : (
             <button 
               onClick={signInWithGoogle}
-              className="p-2 w-9 h-9 bg-slate-100 hover:bg-slate-200 dark:bg-[#1B1E2D] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full border border-slate-250 dark:border-slate-800 transition flex items-center justify-center shadow-sm select-none cursor-pointer shrink-0"
+              className="p-1.5 sm:p-2 w-8 h-8 sm:w-9 sm:h-9 bg-slate-100 hover:bg-slate-200 dark:bg-[#1B1E2D] dark:hover:bg-slate-800 text-slate-700 dark:text-slate-300 rounded-full border border-slate-250 dark:border-slate-800 transition flex items-center justify-center shadow-sm select-none cursor-pointer shrink-0"
               title="Connect with Google"
             >
-              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <svg className="w-3.5 h-3.5 sm:w-4 sm:h-4" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
                 <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>

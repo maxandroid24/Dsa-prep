@@ -240,7 +240,7 @@ export default function Dashboard({
               </label>
               <div className="flex items-center gap-3">
                 <select
-                  value={rawProgress.maxAgeDays !== undefined ? rawProgress.maxAgeDays : 0}
+                  value={rawProgress.maxAgeDays ?? 0}
                   onChange={(e) => {
                     const val = parseInt(e.target.value, 10);
                     onUpdateMaxAgeDays(val === 0 ? undefined : val);
