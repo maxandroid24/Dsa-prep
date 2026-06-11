@@ -1,0 +1,8 @@
+{
+	"appId": "com.visualacademy.dsaprep",
+	"appName": "DSA Interview Prep Hub",
+	"webDir": "dist",
+	"server": {
+		"androidScheme": "https"
+	}
+}

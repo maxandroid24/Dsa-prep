@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">DSA Interview Prep Hub</string>
+    <string name="title_activity_main">DSA Interview Prep Hub</string>
+    <string name="package_name">com.visualacademy.dsaprep</string>
+    <string name="custom_url_scheme">com.visualacademy.dsaprep</string>
+</resources>
