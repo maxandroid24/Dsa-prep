@@ -2,8 +2,8 @@ package com.visualacademy.dsaprep
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
-import androidx.compose.text.style.TextAlign
-import androidx.compose.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.font.FontWeight
 
 // Color tokens matching the elegant premium slate theme
 val CosmicDark = Color(0xFF0F111A)
